@@ -31,6 +31,7 @@ QPair EPR::generate()
 	return QPair(state);
 }
 
+//Pair2Measure
 
 Pair2Measure::Pair2Measure(Matrix<complex<double>, 16, 16>* trmat, Matrix<complex<double>, 16, 16>* auxtrmat)
 {
@@ -180,13 +181,19 @@ void Pair2Measure::print()
 	cout << endl << "aux transformation matrix:" << endl << *auxtransmat << endl << "transformation matrix:" << endl << *transmat << endl;
 }
 
+//abs2
+
 double abs2(complex<double> n)
 {
 	return n.real() * n.real()+n.imag()*n.imag();
 }
 
-Channel::Channel(double lengthk, double alengthk)
+//Channel
+
+Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok)
 {
+	to = tok;
+	from = fromk;
 	length = lengthk;
 	alength = alengthk;
 }
@@ -212,4 +219,26 @@ bool Channel::through(QPair * pair, int pairindex)
 	}
 }
 
+//Node
 
+Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prevdr, Node* nextn, double nextd, EPR *eprk, Channel *leftchk, Channel * rightchk)
+{
+	mem = new QMem[memsizek];
+	memsize = memsizek;
+	measure.SetBellMeasure();
+	prevNodeleft = prevnl;
+	prevdistleft = prevdl;
+	prevNoderight = prevnr;
+	prevdistright = prevdr;
+	nextNode = nextn;
+	nextdist = nextd;
+	epr = eprk;
+	leftch = leftchk;
+	rightch = rightchk;
+
+}
+
+Node::~Node()
+{
+	delete[] mem;
+}

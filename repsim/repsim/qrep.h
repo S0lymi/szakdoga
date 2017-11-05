@@ -36,6 +36,7 @@ public:
 	int pairindex;
 	double maxtime;
 
+
 	//konst
 	QMem(QPair * pairk = NULL, int pairindexk = 0, double maxtime = 0);
 	//dest
