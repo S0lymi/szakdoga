@@ -26,6 +26,7 @@ public:
 	//other
 	void print();
 	void agesync();
+	void SwapIndex();
 
 };
 
@@ -35,11 +36,16 @@ public:
 	QPair * pair;
 	int pairindex;
 	double maxtime;
+	bool ReadytoMeasure;
+	double fid;
+	int state;
 
 
 	//konst
-	QMem(QPair * pairk = NULL, int pairindexk = 0, double maxtime = 0);
+	QMem(QPair * pairk = NULL, int pairindexk = 0, double maxtime = 0, bool rdy = false, double fidk = 1, int statek = 0);
 	//dest
 	~QMem();
+	//other
+	void print();
 
 };

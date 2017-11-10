@@ -1,7 +1,7 @@
 #pragma once
 
 #include "qrep.h"
-#include "elements.h"
+
 
 class SimItem
 {
@@ -10,6 +10,7 @@ public:
 	SimItem * nextItem;
 	SimItem * prevItem;
 	function<int()> FuncToCall;
+	string name;
 
 	//konst
 	SimItem();
@@ -30,4 +31,5 @@ public:
 	//other
 	void Schedule(SimItem * item);
 	int ExecuteNext();
+	void printlisttimes();
 };

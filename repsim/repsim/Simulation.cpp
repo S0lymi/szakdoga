@@ -6,6 +6,7 @@ SimItem::SimItem()
 	nextItem = NULL;
 	prevItem = NULL;
 	FuncToCall = NULL;
+	name = " ";
 }
 
 SimItem::~SimItem()
@@ -118,4 +119,18 @@ int SimRoot::ExecuteNext()
 	}
 	cout << "curtime:" << curtime << endl;
 	return 0;
+}
+
+void SimRoot::printlisttimes()
+{
+	SimItem * next = nextItem;
+	cout << endl << "curtime: " << curtime << endl;
+	cout << "nexttimes: ";
+	while (next != NULL)
+	{
+		cout << next->extime << " "<<next->name <<" ";
+		next = next->nextItem;
+	}
+	cout << endl;
+
 }

@@ -2,6 +2,7 @@
 
 #include "qrep.h"
 #include <random>
+#include "Simulation.h"
 
 class Node;
 
@@ -19,6 +20,7 @@ public:
 	void print();
 		
 	QPair generate();
+	QPair * generatep();
 };
 class Pair2Measure
 {
@@ -59,7 +61,8 @@ class Node
 {
 public:
 	int memsize;
-	QMem * mem;
+	QMem * memleft;
+	QMem * memright;
 	Pair2Measure measure;
 	Node * prevNodeleft;
 	double prevdistleft;
@@ -70,13 +73,29 @@ public:
 	EPR * epr;
 	Channel* leftch;
 	Channel* rightch;
+	int type;
 
 	//konst
 	Node(int memsizek=10,Node* prevnl=NULL,double prevdl=0, Node* prevnr = NULL, double prevdr = 0,Node* nextn=NULL,double nextd=0,EPR *eprk=NULL,Channel *leftchk=NULL, Channel * rightchk=NULL);
 	//dest
 	~Node();
+	//other
+	int CorrectAfterMeasure(QPair * pair, int result);// local operation to get the desired Bell state after measure
+
+	int Bellmeasure(SimRoot * Sim, QMem *m1, QMem* m2); // does the Bell-measure
+
+	int Updateformeasure(SimRoot * Sim);
+
+	int ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from);
+
+	int ReceiveFromChSuccess(SimRoot *Sim, QPair * pair, Node * nodeleft, Node * noderight);
+
 
 };
 
 
 double abs2(complex<double> n);
+
+Matrix4cd Kronecker(Matrix2cd  m1, Matrix2cd  m2);
+
+void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, double * distleft, double * distright);

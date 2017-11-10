@@ -31,6 +31,13 @@ QPair EPR::generate()
 	return QPair(state);
 }
 
+QPair * EPR::generatep()
+{
+	QPair * p = new QPair;
+	*(p->state) = *state;
+	return p;
+}
+
 //Pair2Measure
 
 Pair2Measure::Pair2Measure(Matrix<complex<double>, 16, 16>* trmat, Matrix<complex<double>, 16, 16>* auxtrmat)
@@ -168,9 +175,9 @@ int Pair2Measure::bmeasure(QPair * p1, QPair * p2)
 		0, 0.707, 0.707, 0,
 		0, 0.707, -0.707, 0;
 	Vector4cd aux;
-	aux << jointstate(0 + result * 4), jointstate(1 + result * 4), jointstate(2 + result * 4), jointstate(3 + result * 4);
+	aux << jointstate(0 + result * 4), jointstate(1 + result * 4), jointstate(2 + result * 4), jointstate(3 + result * 4); //choosing the new state
 	*p1->state = tmat.inverse()*aux;
-	*p1->state = *p1->state * (1/sqrt(p1->state->cwiseAbs2().sum()));
+	*p1->state = *p1->state * (1/sqrt(p1->state->cwiseAbs2().sum())); // norming
 
 
 	return result;
@@ -186,6 +193,49 @@ void Pair2Measure::print()
 double abs2(complex<double> n)
 {
 	return n.real() * n.real()+n.imag()*n.imag();
+}
+
+//Kronecker
+
+Matrix4cd Kronecker(Matrix2cd  m1, Matrix2cd  m2)
+{
+	Matrix4cd retmat;
+	retmat << m1(0, 0)*m2(0, 0), m1(0, 0)*m2(0, 1), m1(0, 1)*m2(0, 0), m1(0, 1)*m2(0, 1),
+		m1(0, 0)*m2(1, 0), m1(0, 0)*m2(1, 1), m1(0, 1)*m2(1, 0), m1(0, 1)*m2(1, 1),
+		m1(1, 0)*m2(0, 0), m1(1, 0)*m2(0, 1), m1(1, 1)*m2(0, 0), m1(1, 1)*m2(0, 1),
+		m1(1, 0)*m2(1, 0), m1(1, 0)*m2(1, 1), m1(1, 1)*m2(1, 0), m1(1, 1)*m2(1, 1);
+	return retmat;
+}
+
+//NodestoCorrect
+
+void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, double * distleft, double * distright)
+{
+	// leftside
+	double dleft = parent->prevdistleft;
+	Node * left = parent->prevNodeleft;
+	while (left->nextNode != NULL)//down to the EPR generating layer
+	{
+		dleft = dleft + left->prevdistleft;
+		left = left->prevNodeleft;
+	}
+	dleft = dleft + left->prevdistleft;
+	left = left->prevNodeleft;
+	*correctleft = left;
+	*distleft = dleft;
+	//rightside
+	double dright = parent->prevdistright;
+	Node * right = parent->prevNoderight;
+	while (right->nextNode != NULL) //down to EPR layer
+	{
+		dright = dright + right->prevdistright;
+		right = right->prevNoderight;
+	}
+	dright = dright + right->prevdistright;
+	right = right->prevNoderight;
+	*correctright = right;
+	*distright = dright;
+
 }
 
 //Channel
@@ -223,7 +273,8 @@ bool Channel::through(QPair * pair, int pairindex)
 
 Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prevdr, Node* nextn, double nextd, EPR *eprk, Channel *leftchk, Channel * rightchk)
 {
-	mem = new QMem[memsizek];
+	memleft = new QMem[memsizek];
+	memright = new QMem[memsizek];
 	memsize = memsizek;
 	measure.SetBellMeasure();
 	prevNodeleft = prevnl;
@@ -235,10 +286,293 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 	epr = eprk;
 	leftch = leftchk;
 	rightch = rightchk;
+	type = 0;
 
 }
 
 Node::~Node()
 {
-	delete[] mem;
+	delete[] memleft;
+	delete[] memright;
+}
+
+int Node::CorrectAfterMeasure(QPair * pair, int result)
+{
+	Matrix2cd p1, z1, i1;
+	i1 << 1, 0, 0, 1;
+	p1 << 0, 1, 1, 0;
+	z1 << 1, 0, 0, -1;
+	if(result==0 )// I gate
+	{
+
+	}
+	else if (result == 1) // Z gate
+	{
+		*pair->state = Kronecker(z1, i1) * (*pair->state);
+	}
+	else if (result == 2) // P gate
+	{
+		*pair->state = Kronecker(p1, i1) * (*pair->state);
+	}
+	else if (result == 3) // PZ gate
+	{
+		*pair->state = Kronecker(z1, i1)* Kronecker(p1, i1) * (*pair->state);
+	}
+	//signal that pair is ready to be measured
+	pair->mem[0]->ReadytoMeasure = true;
+	pair->mem[1]->ReadytoMeasure = true;
+
+	//	cout << "rc mems: " << pair->mem[0] << " " << pair->mem[1] << endl;
+
+	return 0;
+}
+
+int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
+{
+	if(m1->pair!=NULL && m2->pair!=NULL)
+	{
+		int res;
+		if (m1->pairindex != 1)
+		{
+			m1->pair->SwapIndex();
+		}
+		if (m2->pairindex != 0)
+		{
+			m2->pair->SwapIndex();
+		}
+		m1->pair->agesync();
+		m2->pair->agesync();
+		res = measure.bmeasure(m1->pair, m2->pair);
+		//after measure set
+		if (m2->pair->age[0] > m1->pair->age[0])
+		{
+			m1->pair->age[0] = m2->pair->age[0];
+		}
+		m2->pair->mem[1]->pair = m1->pair;
+		m1->pair->mem[1] = m2->pair->mem[1];
+		m1->pair->agesync();
+		//m1->pair->mem[0]->ReadytoMeasure = true;
+		//m1->pair->mem[1]->ReadytoMeasure = true;
+		//Schedule things
+		// /*
+		//result correction
+		double delay = nextdist*5;
+		SimItem * item = new SimItem;
+		item->FuncToCall = bind(&Node::CorrectAfterMeasure, this, m1->pair, res);
+		item->extime = Sim->curtime + delay;
+		item->name = "rc";
+		Sim->Schedule(item);
+		//next operation
+			SimItem * next = new SimItem;
+			next->FuncToCall = bind(&Node::Updateformeasure, nextNode, Sim);
+			next->extime = Sim->curtime + delay;
+			next->name = "updms";
+			Sim->Schedule(next);
+		//check for more measures
+			SimItem * check = new SimItem;
+			check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+			check->extime = Sim->curtime;
+			check->name = "updmst";
+			Sim->Schedule(check);
+		//*/
+		//freeing memories
+		//delete m2->pair;
+		m2->ReadytoMeasure = false;
+		m1->ReadytoMeasure = false;
+		m1->pair = NULL;
+		m2->pair = NULL;
+		m1->state = 0;
+		m2->state = 0;
+
+	}
+	cout << endl << "Bellmeasure" << endl;
+	return 0;
+}
+
+int Node::Updateformeasure(SimRoot * Sim)
+{
+	QMem *m1, *m2;
+	m1 = NULL;
+	m2 = NULL;
+	//check memories ready for measure
+	for (int i = 0; i < memsize && m1 == NULL; i++)
+	{
+		if (memleft[i].ReadytoMeasure && memleft[i].state == 2) m1 = &memleft[i];
+	}
+	for (int i = 0; i < memsize && m2 == NULL; i++)
+	{
+		if (memright[i].ReadytoMeasure && memright[i].state == 2) m2 = &memright[i];
+	}
+
+	bool pairs_ok =false;
+	if (m1 != NULL && m2 != NULL)
+	{
+		if (m1->pair->mem[0] != NULL && m1->pair->mem[1] != NULL && m2->pair->mem[0] != NULL && m2->pair->mem[1] != NULL)
+		{
+			pairs_ok = (m1->pair->mem[0]->state == 2 && m1->pair->mem[1]->state == 2 && m2->pair->mem[0]->state == 2 && m2->pair->mem[1]->state == 2); // check the pairs' memory states
+		}
+	}
+
+	if (m1 != NULL && m2 != NULL && pairs_ok) //Schedule measure
+	{
+		SimItem * item = new SimItem;
+		item->FuncToCall = bind(&Node::Bellmeasure, this, Sim, m1, m2);
+		item->extime = Sim->curtime;
+		item->name = "bm";
+		//schedule measure
+		Sim->Schedule(item);
+	}
+
+	cout << endl << "Updateformeasure" << endl;
+	return 0;
+}
+
+int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
+{
+	if (from->from->prevNoderight == this) // receive to leftside memories , TODO: dont use prevNode, use Channel->from
+	{
+		cout << "left";
+		int check = 0;
+		bool found = false;
+		for (int i = 0; i < memsize && !found; i++)
+		{
+			if (memleft[i].pair == NULL)
+			{
+				found = true;
+				check = i;
+			}
+		}
+		if (found) // there's space for the qubit
+		{
+			cout << "0";
+			memleft[check].pair = pair;
+			memleft[check].pairindex = index;
+			memleft[check].state = 1;
+			pair->mem[index] = &memleft[check];
+			if (type == 0) // check whether this node is the bottom -> has to start measure chain
+			{
+				if(prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
+			}
+			else memleft[check].ReadytoMeasure = false;
+			//check if both sides of the pair have arrived
+			if (pair->mem[0] != NULL && pair->mem[1] != NULL)
+			{
+				cout << "2";
+				if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+				{
+					Node * leftnode;
+					leftnode = from->from->prevNodeleft;
+					double delay;
+					delay = from->from->leftch->length + from->from->rightch->length;
+					SimItem *item = new SimItem;
+					item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, leftnode, this);
+					item->extime = Sim->curtime + delay;
+					item->name = "chrecscl";
+					Sim->Schedule(item);
+				}
+			}
+
+		}
+		else // delete pair if we cant store it
+		{
+			if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+			{
+				pair->mem[0]->pair = NULL;
+				pair->mem[0]->ReadytoMeasure = false;
+				pair->mem[0]->state = 0;
+			}
+			if (pair->mem[1] != NULL)
+			{
+				pair->mem[1]->pair = NULL;
+				pair->mem[1]->ReadytoMeasure = false;
+				pair->mem[1]->state = 0;
+			}
+			delete pair;
+		}
+
+	}
+	if (from->from->prevNodeleft == this) // receive to rightside memories
+	{
+		cout << "right";
+		int check = 0;
+		bool found = false;
+		for (int i = 0; i < memsize && !found; i++)
+		{
+			if (memright[i].pair == NULL)
+			{
+				found = true;
+				check = i;
+			}
+		}
+		if (found) // there's space for the qubit
+		{
+			cout << "1";
+			memright[check].pair = pair;
+			memright[check].pairindex = index;
+			memright[check].state = 1;
+			pair->mem[index] = &memright[check];
+			if (type == 0) // check whether this node is the bottom -> has to start measure chain
+			{
+				if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
+			}
+			else memright[check].ReadytoMeasure = false;
+			//check if both sides of the pair have arrived
+			if (pair->mem[0] != NULL && pair->mem[1] != NULL)
+			{
+				cout << "3";
+				if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+				{
+					Node * rightnode;
+					rightnode = from->from->prevNoderight;
+					double delay;
+					delay = from->from->leftch->length + from->from->rightch->length;
+					SimItem *item = new SimItem;
+					item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, this, rightnode);
+					item->extime = Sim->curtime + delay;
+					item->name = "chrecscr";
+					Sim->Schedule(item);
+				}
+			}
+
+		}
+		else // delete pair if we cant store it
+		{
+			if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+			{
+				pair->mem[0]->pair = NULL;
+				pair->mem[0]->ReadytoMeasure = false;
+				pair->mem[0]->state = 0;
+			}
+			if (pair->mem[1] != NULL)
+			{
+				pair->mem[1]->pair = NULL;
+				pair->mem[1]->ReadytoMeasure = false;
+				pair->mem[1]->state = 0;
+			}
+			delete pair;
+		}
+
+	}
+	return 0;
+}
+
+int Node::ReceiveFromChSuccess(SimRoot * Sim, QPair * pair, Node * nodeleft, Node * noderight)
+{
+	pair->mem[0]->state = 2;
+	pair->mem[1]->state = 2;
+	//Update the nodes which hold the pair
+	SimItem * left = new SimItem;
+	left->FuncToCall = bind(&Node::Updateformeasure, nodeleft, Sim);
+	left->extime = Sim->curtime;
+	left->name = "updmsrcvl";
+	Sim->Schedule(left);
+
+	SimItem * right = new SimItem;
+	right->FuncToCall = bind(&Node::Updateformeasure, noderight, Sim);
+	right->extime = Sim->curtime;
+	right->name = "updmsrcvr";
+	Sim->Schedule(right);
+
+
+	return 0;
 }
