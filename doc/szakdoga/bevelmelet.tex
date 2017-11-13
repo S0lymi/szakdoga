@@ -1,12 +1,16 @@
 
 
-%---%
-\chapter{Elméleti Bevezető}
-%---%
+
+
+
 
 \section{Elméleti alapok}
 
-\subsection{Posztulátumok: \cite{kvantkonyv1}} 
+A dolgozatban használt terminológia, valamint a vizsgált rendszerek megértéséhez szükséges a kvantuminformatikában használt alapvetó jelölések, valamint a kvantumos állapotok alapvető tulajdonságainak és a rajtuk végzett mérések, műveletek hatásainak ismerete. Ehhez nyújt egy gyors áttekintést a következő rész.Megjegyzendő, hogy jelen esetben a rendszereket csak diszkrét időben vizsgáljuk, mivel a későbbiekben vizsgált események leírásához ez elégséges, valamint a bevezető megfelelő lineáris algebrai előismeretekre is épít.
+
+\subsection{Posztulátumok:} 
+ \cite{kvantkonyv1}\\
+
 \underline{1.állapotteres leírás:} Egy zárt fizikai rendszer éppen aktuális állapota leírható egy \textbf{V} Hilbert tér-beli egységhosszú, komplex együtthatós állapotvektorral. Hilbert tér például egy komplex lineáris vektortér, amire értelmezve van a belső szorzat(skalárszorzat). 
 Vegyünk példának egy két dimenziós Hilbert teret, ami egy egyszerű zárt fizikai rendszer jelképez. A rendszer állapotát le lehet írni egy /textbf{v} két dimenziós vektorral, ahol:\\
 \begin{center}
@@ -85,7 +89,7 @@ $ \ket{\psi}=a\ket{0}+b\ket{1}= \begin{bmatrix} a\\b \end{bmatrix} $
 \end{center}
 rendszer sűrűségmátrixa a következőképpen számolható:
 \begin{center}
-$ p= \ket{\phi}\bra{\phi} = \begin{bmatrix} a \\ b \end{bmatrix} = \begin{bmatrix} a* b* \end{bmatrix}= \begin{bmatrix} aa* ab*\\a*b bb* \end{bmatrix} = \begin{bmatrix} \abs{a}^2 ab* \\ a*b \abs{b}^2 \end{bmatrix} $
+$ p= \ket{\phi}\bra{\phi} = \begin{bmatrix} a \\ b \end{bmatrix} = \begin{bmatrix} a^* b^* \end{bmatrix}= \begin{bmatrix} aa^*\quad  ab^*\\a^*b \quad bb^* \end{bmatrix} = \begin{bmatrix} \abs{a}^2 \quad ab^* \\ a^*b \quad \abs{b}^2 \end{bmatrix} $
 \end{center}
 Ezen felül definiáljük még a “trace” (magyarul nyom) operátort a következőképpen. Egy n-szer n-es A mátrixra:
 \begin{center}
@@ -155,10 +159,97 @@ A itt ábrázolt módszer is még idealizált csatornákkal dolgozik, magában n
 \subsection{A kvantum ismétlő}
 %%%
 A kvantum ismétlő megvalósítására törekvő modellek túlnyomó része három fő építőelemből áll, és jellemzően e három építőelem más és más megvalósításában tér el egymástól.Egy jellemző általános megvalósítás az alábbi:
-A nagy távolságon jelentkező romlás elkerülése végett, ezt a távolságot felosztjuk több kisebbre, amik között a fentebb részletezett módon összefonódás megosztással teremtünk kapcsolatot. A felosztott kis távolságok között állomásokat alakítunk ki(ismétlőket), itt végezzük el az összefonódás megosztáshoz szükséges Bell méréseket. Továbbá minden szakaszhoz(minden összefonódás megosztási lépcsőhöz) létre kell hoznunk plusz összefonódott párokat amiket a folyamat során elhasználunk. Ehhez szükségünk van egy összefonódott pár forrásra, ami manapság már igen sokféle lehet[].Ez az egyik fő hasonlóság és egyben különbség is a legtöbb megvalósításban. A csatorna nem ideális átvitelével még mindig nem foglalkoztunk, pedig látható, hogy az továbbra is exponenciálisan fog romlani a csomópontok és a hossz növelésével. Ennek kiküszöbölésére használhatunk valamilyen összefonódás tisztító eljárást. Ezek jellemzően több nem teljesen tiszta összefonódott állapotból állítanak elő kevesebb, tisztább, jobban összefonódott állapotok.Tipikusan van egy tisztasági határérték a felhasznált “koszos” összefonódott állapotokra ami fölött alkalmazhatóak, emiatt akár ezek paraméterei támaszthatnak határokat a csatornaszakaszok hossza felé. Segítségükkel az átviteli sebesség kárára ugyan, de az átviteli folyamatok közé megfelelően beiktatva, kompenzálhatóak a csatornából származó veszteségek. \\
-\underline{Példa egy tisztító protokollra}\\
-Egy lehetséges ilyen tisztító protokoll például a Bennett által javasolt[8] aminek folyamán helyben végzett transzformációk segítségével több nem teljesen “tiszta” összefonódott párból kevesebb jobban összefonódott állapot hozható létre. (Megemlítendő, hogy eredetileg elektronspinekre írták le, de természetesen megvalósítható más hordozók esetén is.) Legyen M egy “kevert”(nem tiszta) állapot amiből tisztább, jobban összefonódott állapotokat szeretnénk létrehozni. (Ilyen lehet például egy zajos csatornán megosztott $ \ket{\Psi^-} $  pár.) Ilyenkor M tisztaságát az eredeti teljesen összefonódott állapothoz képest 
+A nagy távolságon jelentkező romlás elkerülése végett, ezt a távolságot felosztjuk több kisebbre, amik között a fentebb részletezett módon összefonódás megosztással teremtünk kapcsolatot. A felosztott kis távolságok között állomásokat alakítunk ki(ismétlőket), itt végezzük el az összefonódás megosztáshoz szükséges Bell méréseket. Továbbá minden szakaszhoz(minden összefonódás megosztási lépcsőhöz) létre kell hoznunk plusz összefonódott párokat amiket a folyamat során elhasználunk.\\
+ Ehhez szükségünk van egy összefonódott pár forrásra, ami manapság már igen sokféle lehet. %források jöhetnek még ide
+Ez az egyik fő hasonlóság és egyben különbség is a legtöbb megvalósításban. A források maguk is sokféle karakterisztikával rendelkezhetnek. Adhat ki egy forrás kis sebességgel, nagy hibaszázalékkal közel teljesen tiszta állapotokat, vagy akár nagyobb sebességgel kisebb hibaszázalékkal több kevésbé tiszta állapotot is egyszerre.\\
+ A csatorna nem ideális átvitelével is foglalkozni kell, látható, hogy az továbbra is exponenciálisan fog romlani a csomópontok és a hossz növelésével. Ennek kiküszöbölésére használhatunk valamilyen összefonódás tisztító eljárást.\\
+ Ezek jellemzően több nem teljesen tiszta összefonódott állapotból állítanak elő kevesebb, tisztább, jobban összefonódott állapotok.Tipikusan van egy tisztasági határérték a felhasznált “koszos” összefonódott állapotokra ami fölött alkalmazhatóak, emiatt akár ezek paraméterei támaszthatnak határokat a csatornaszakaszok hossza felé. Segítségükkel az átviteli sebesség kárára ugyan, de az átviteli folyamatok közé megfelelően beiktatva, kompenzálhatóak a csatornából származó veszteségek. Ennek szemléltetésére vizsgáljunk egy egyszerűbb ilyen eljárást.\\
+\underline{Példa egy tisztító protokollra:}\\
+Egy lehetséges ilyen tisztító protokoll például a Bennett által javasolt\cite{bennett1996purification} aminek folyamán helyben végzett transzformációk segítségével több nem teljesen “tiszta” összefonódott párból kevesebb jobban összefonódott állapot hozható létre. (Megemlítendő, hogy eredetileg elektronspinekre írták le, de természetesen megvalósítható más hordozók esetén is.) Legyen M egy “kevert”(nem tiszta) állapot amiből tisztább, jobban összefonódott állapotokat szeretnénk létrehozni. (Ilyen lehet például egy zajos csatornán megosztott $ \ket{\Psi^-} $  pár.) Ilyenkor M tisztaságát az eredeti teljesen összefonódott állapothoz képest 
+$ F= \bra{\Psi^-}M\ket{\Psi^-} $ 
+(?fidelty?)-vel fejezhetjük ki. Ezt akár értelmezhetjük azzal is ebben az esetben, hogy egy véletlenszerű bázisban végzett mérésnél mekkora valószínűséggel mérjük a két bit állapotát párhuzamosnak($P_{||}$). Ezzel kifejezve: 
+$F = 1 - 3P_{||}/2$. \\
+A protokoll lépései leegyszerűsítve:\\
+Először végrehajtunk egy véletlenszerű bilaterális forgatást minden megosztott páron külön, aminek hatására következő forgásszimmetrikus állapothoz jutunk:\\
+$ W_F = F \cdot \bra{\Psi^-} + \frac{1-F}{3}\bra{\Psi^+}\ket{\Psi^+} + \frac{1-F}{3}\bra{\Phi^+}\ket{\Phi^+} + \frac{1-F}{3}\bra{\Phi^-}\ket{\Phi^-} $
+\\
+Az így kapott $W_F$  Werner-állapot ugyanolyan F tisztaságú, mint a kiinduló M. A továbbiakban a következő műveletekre lesz szükségünk.:\\
+-Unilaterális Pauli forgatások.:az összefonódott párban egy részecske  $\pi$ radiánnal való elforgatása az x,y, vagy z tengely körül. Ennek hatására a Bell állapotok egymásba mennek át: \\
+\begin{center}
+$\sigma_x : \Psi^\pm \leftrightarrow \Phi^\pm $\\
+$\sigma_z : \Psi^\pm \leftrightarrow \Psi^\mp és \Phi^\pm \leftrightarrow \Phi^\mp $ \\
+$\sigma_y : \Psi^\pm \leftrightarrow \Phi^\mp $
+\end{center}
+-Bilaterális $\pi/2$ forgatások $B_x$ , $B_y$ és $B_z$ a pár mindkét tagjára megfelelően x,y és z szerint. Hatása:\\
+\begin{center}
+$B_x : \Phi^+ \leftrightarrow \Psi^+$ \\
+$B_y : \Phi^- \leftrightarrow \Psi^+$ \\
+$B_y : \Phi^+ \leftrightarrow \Phi^-$
+\end{center}
+-Kvantum XOR vagy CNOT bilaterálisan végrehajtva a mindkét megfigyelő által két megosztott pár megfelelő bitjein.A bilaterális XOR az hagyományos XOR-hoz hasonlóan működik.Alíz és Bob osztozzon 2 páron, Alíznál van 1 és 3, Bobnál 2 és 4. Ekkor egy 1, 2  forrású és 3,4 célú BXOR feltételesen fordítja a 3-as bitet, akkor és csak akkor, ha 1-es 1(például elektronspinek esetében felfele áll, de ez hordozónként szabadon változhat.) és ehhez hasonlóan feltétetlesen fordítja a 4-es bitet, akkor és csak akkor, ha 2-es 1.A BXOR hatása Bell állapotokra:\\
+\begin{figure}[H]
+\centering
+\includegraphics[width=100mm,keepaspectratio]{bennetoperations}
+\caption[BXOR hatása Bell állapotokra]{BXOR hatása Bell állapotokra.}
+\end{figure}
+-Az előző unitér transzformációkon kívül alkalmazunk még egy mérést is, melyben Alíz és Bob a z tengely mentén mér(elektronok spinjeit), amivel megbízhatóan meg tudjuk különböztetni a $\Phi$ és $\Psi$ állapotokat, viszont a ``-'' és ``+'' -t nem. Természetesen a mérés után a mért pár már nincs összefonódott állapotban.
+Ezen műveletek birtokában tekintsük az alábbi protokollt, melynek bemenetei valamilyen F tisztaságú Werner állapotok:
+\begin{enumerate}
+\item Egy unilateláris $\sigma_y$ forgatást hajtunk végre mind a két páron, aminek hatására a többnyire $\Psi^-$ Werner állapotból a többnyire $\Phi^+$ Werner állapotba kerülnek.
+\item Végrehajtunk egy  BXOR-t a két nem tiszta $\Phi^+$ állapoton és utána a célpárt megmérjük a z tengely mentén.Ha a mérési eredmények párhuzamosak, ami a $\Phi^+$ állapotnak megfelelő, akkor a meg nem mért forráspárt  megtartjuk, ellenkező esetben nem.
+\item Végül, ha a forráspárt megtartottuk, egy többnyire $\Psi^-$ állapotba visszaalakítjuk egy unilaterális $\sigma_y$ forgatással, majd forgásszimmetrikussá tesszük egy véletlen bilaterális forgatással.
+\end{enumerate}
+Ezen egyszerű protokoll ismétlésével lépésenként ¼-ed valószínűséggel növekvő F tisztaságot lehet elérni, amennyiben a felhasznált M párokra igaz, hogy
+$F_m > 1/2$  . Továbbá a lépésenként így elért $F'>F$ kielégíti a következő egyenletet:\\
+\begin{center}
+$F' = \frac{F^2 + \frac{1}{9}(1-F)^2}{F^2 + \frac{2}{3}F(1-F) + \frac{5}{9}(1-F)^2} $
+\end{center}
+A módszer ismételt elvégzésével a tiszta állapotot tetszőlegesen megközelítő állapot állítható elő, viszont a hatékonyság(nem tiszta bemenet/tiszta kimenet)  a teljesen tiszta kimenet közelítésével a 0-hoz tart. Ennek a javítására szerencsére vannak módszerek, egy ilyen lehetőség például, ha nem egy forrást párt BXOR-olunk egy célpárral, hanem többet. Ennek az ötletnek egy továbbfejlesztése, amikor tiszta $\Phi^+$  állapotokat használunk a BXOR céljaként a több nem tiszta forráspárhoz. Ezután megmérjük a célt. A fenti tábla alapján minden $\Psi^+$ vagy $\Psi^-$ forráspár váltja a célt $\Phi^+$ és $\Psi^+$ között, a forrásra való hatás nélkül. Ennek alapján a BXOR-t egyfajta paritás tesztként használva meg tudjuk állapítani, hogy a mért halmazban páratlan vagy páros számú $\Psi$ állapot van. Ezután további BXOR-ok elvégzésével a részhalmazokon, kiválasztható az összes $\Psi$ állapot és $\Phi$ állapotra javítható, majd hasonló módszerrel meg lehet találni a $\Phi^-$ állapotokat is és javítani a kívánt $\Phi^+$-ra.\\
+Természetesen léteznek más tisztítóprotokollok is más tulajdonságokkal, viszont a továbbiakhoz nem szükséges ezen terület mélyebb ismerete.% lehet tisztítóprot forrásokat ide.
+\\
+Az ismétlő következő eleme maga a Bell-mérés aminek következtében maga az ``összefonódás megosztás'' nevű jelenség a párokon ténylegesen végbe megy. Megemlítendő, hogy amennyiben nem teljesen tiszta állapotokat mérünk ennek hatására a létrejövő új pár tisztasága is romlani fog, valamint magának a mérésnek is lehet egy hibaszázaléka\cite{lutkenhaus1999bell}, amiket a későbbi lépésekben ugyanúgy javítani kell.\\
+Fontos elemek még az állomásokon található kvantumos állapotok tárolására képes memóriaegységek. Mivel a végső cél az ismétlő két végén található memóriában tárolt qubit közötti összefonóds létrehozása, természetes feltétel az állapothú tároláson túl, hogy ezek a memóriák képesek legyen megtartani a qubit állapotát a protokoll végigfutási ideje alatt. Az alkalmazható hibajavítási stratégiáknak ez is egyfajta gátat szab mint az összes rendszerben tölthető idő felső határa \\
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{repeater}
+\caption[Általános ismétlő]{Általános ismétlő elvi rajza\\ A tisztító protokoll a képen nincs feltüntetve, tipikusan a Bell-mérések előtt alkalmazzák, habár ettől eltérő stratégiák is létezhetnek.}
+\end{figure}
 
+\subsection{Néhány megvalóstás}
 
+A továbbiakban vizsgáljunk néhány mostani megvalósítást, ahol már láthatóak a technológia alkalmazásából származó előnyök valamint kihívások is.\\
+Egy 2016-os német tanulmányban\cite{uphoff2016integrated} atom-foton összefonódott párokat használnak, melyeket optikai mikroüregekben található magányos atomok segítségével hoznak létre. Az összefonódás közvetlen az atomi kvantummemória és a foton között jön létre. További előny még, hogy ennek létrejöttét egy másik ún. “bejelentő” foton is jelzi és az összefonódást szállító foton olyan előnyös tulajdonságokkal rendelkezik(spektrum stb), hogy az egész elrendezés a szokványos telekommunikációs hullámhossztartományban használható. A további lépések az általános modellt követik, maga az összefonódás megosztás, fotonok közötti Bell mérésekkel, és atom-atom kapuk alkalmazásával történik.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{nemetkis}
+\caption[Atom-foton ismétló elvi rajza]{A 2016-os német tanulmány elvi rajza.\\
+Egy ismétlő csomópont a “bejelentő” üregből(kék) és telekommunikációs hullámhosszú összefonó üregekből áll. Az atomokat(fekete pont) lézersugarakkal irányítjuk. Az L/2 távolságra lévő csomópontokat először összefonódott állapotba juttatjuk a fotonokon elvégzett(L/4 távolságnál) Bell mérések segítségével. A csomópont párok között összefonódás megosztást a központi csomópontban elvégzett(atom-atom) művelettel valósítjuk meg.   
+}
+\end{figure}
+A tanulmány szépen szemlélteti még a távolságból és a hibajavításból adódó problémák hatását.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{nemetgraph}
+\caption[Ismétlő teljesítmény]{A várható átviteli sebesség és tárolási idő alakulása az áthidalni kívánt távolság függvényében.\\
+Kék pontozott vonal-> ismétlő nélküli eset; zöld folytonos vonal->2 szakasz esetén\\
+piros szaggatott vonal->4 szakasz esetén, hibánál teljes újrakezdéssel\\
+barna szaggatott vonal->4 szakasz hibánál a már összefonódott állapotok megtartásával\\
+}
+\end{figure}
 
+Látszik, hogy kis távolságoknál a közvetlen összeköttetés a legjobb egyszerűsége miatt, viszont 100km fölött már számottevően jobbak az ismétlős megoldások. A tárolási idő szempontjából látszik, hogy nagy távolságoknál a több részre felosztott rendszerek teljesítenek jobban.(Továbbá az is, hogy a hiba teljes újrakezdéssel való javítása is meglehetősen csökkenti a szükséges tárolási időt.)\\
+Egy másik 2016-os tanulmány\cite{krovi2016practical} az ún. parametric down conversion jelenséget és két foton interferenciát hasznosító  összefonódott pár forrásokat használó jelen/közeli jövőbeli ismétlők lehetséges korlátjait vizsgálta, különös tekintettel,az egyszerű megvalósíthatóságra a mai technológiákkal.Az ő szimulációjukból is látszik, az ismétlők előnye nagyobb távolságok esetén:\\
+\begin{figure}[H]
+\centering
+\includegraphics[width=100mm,keepaspectratio]{othergraph}
+\caption[Ismétlő teljesítményhatár]{A különböző számú kapcsolatokból álló ismétlőrendszerek átvitele és összehasonlításuk más ismétlő nélküli protokollok határaival(TGW vonal ezek felső határa).
+}
+\end{figure}
+Különböző ismétlő protokollok akár ionokkal való megvalósítási lehetőségét is vizsgálták\cite{pfister2016quantum} ugyancsak 2016-ban. Az általuk használt kísérleti összeállításban $^{40}Ca^+$ ionok segítségével már F>0.95 esetén 100 állapot/s sebességet is elértek bizonyos protokollok esetén, azonban megfelelő változtatásokkal a több mint 750 állapot/s sebességet is elérhetőnek találták, az ionos megvalósítások esetében.\\
 
+Egy negyedik, kínai tanulmány\cite{li2016heralded} pedig a kvantum pontok és optikai üregek használatával való megvalósítással foglalkozik. Ennek egyik érdekessége, hogy itt úgynevezett time-bin összefonódást hoznak létre, aminek folyamán a fotonoknak az időbeli szabadságfokát használják fel információtárolásra. 
+A tanulmányban továbbá megmutatják, egy N többfelhasználós kvantum ismétlő rendszer felépítését is.
+
+\section{Összefoglaló}
+
+Már az említett megvalósításokból is látszik, hogy a kísérleti kvantuminformációs megvalósítások, hatékonysága, erőforrásigénye és megbízhatósága egyre inkább közelíti a gyakorlatban való eredményes használhatósághoz szükséges feltételek teljesítését az információszétosztás területén is. Tekintve a terület gyors fejlődését, különösen, hogy a kvantum titkosítás és kulcsszétosztás már a jelenben is gyakorlati jelentőséggel bír, a kvantum ismétlők ipari megvalósítása nagy valószínűséggel már a közeljövőben is egy megoldandó mérnöki feladatot fog jelenteni. A fentebb szemléltetett tervezésnél megfontolandó nehézségek fényében döntöttem egy szimuláció elkészítése mellett, ahol a továbbiakban ezek hatását szemléltetetem illetve vizsgálom.

@@ -15,10 +15,10 @@ public:
 	QMem * mem[2];
 	Vector4cd *state;
 	double age[2];
-	
+	int simstate;
 
 	//konst
-	QPair(Vector4cd *statek = NULL, double* agek = NULL,QMem * mem1=NULL,QMem * mem2=NULL);
+	QPair(Vector4cd *statek = NULL, double* agek = NULL, QMem * mem1 = NULL, QMem * mem2 = NULL, int simstatek = 0);
 	//dest
 	~QPair();
 	//operators

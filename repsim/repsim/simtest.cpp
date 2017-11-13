@@ -123,6 +123,7 @@ int main()
 	Node eprnodes[8];
 	Channel channels[16];
 	EPR std_epr;
+	std_epr.rate = 20;
 	for (int i = 0; i < 16; i++)
 	{
 		channels[i].from = &eprnodes[i / 2];
@@ -230,18 +231,24 @@ int main()
 	//delete nodes[1].memleft[0].pair;
 	//delete p1;
 	//*/
-
-	QPair * pair1 = std_epr.generatep();
-	nodes[0].ReceiveFromCh(&Sim, pair1, 0, &channels[0]);
-	nodes[1].ReceiveFromCh(&Sim, pair1, 1, &channels[1]);
+	/*
 	Sim.printlisttimes();
-	for (int i = 0; i < 15; i++)
+	int a=0;
+
+	while(a!=1)
 	{
-		Sim.ExecuteNext();
-		Sim.printlisttimes();
-		cout << " " << nodes[2].memleft[0].ReadytoMeasure << " " << nodes[2].memright[0].ReadytoMeasure << " " << &nodes[2].memleft[0] << " " << &nodes[2].memright[0] << endl;
+		eprnodes[0].GenEPR(&Sim);
+		eprnodes[1].GenEPR(&Sim);
+		while (Sim.nextItem != NULL)
+		{
+			Sim.ExecuteNext();
+			Sim.printlisttimes();
+			cout << " " << nodes[2].memleft[0].ReadytoMeasure << " " << nodes[2].memright[0].ReadytoMeasure << " " << &nodes[2].memleft[0] << " " << &nodes[2].memright[0] << endl;
+		}
+		cin >> a;
 	}
 	cout << endl;
+	//*/
 	//nodes[0].memright[0].pair->print();
 	/*
 	int a = 0;

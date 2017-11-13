@@ -2,9 +2,10 @@
 
 
 //EPR
-EPR::EPR(Vector4cd * statek, double fidelityk)
+EPR::EPR(Vector4cd * statek, double fidelityk, double ratek)
 {
 	state = new Vector4cd;
+	rate = ratek;
 	fidelity = fidelityk;
 	if (statek != NULL)
 	{
@@ -238,6 +239,15 @@ void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, dou
 
 }
 
+int CondDeletePair(QPair * pair)
+{
+	if (pair->simstate == 1)
+	{
+		delete pair;
+	}
+	return 0;
+}
+
 //Channel
 
 Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok)
@@ -267,6 +277,27 @@ bool Channel::through(QPair * pair, int pairindex)
 	{
 		return true;
 	}
+}
+
+int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
+{
+	double success;
+	if (true)
+	{
+		double delay;
+		delay = length * 5;
+		SimItem * item = new SimItem;
+		item->FuncToCall = bind(&Node::ReceiveFromCh, to, Sim, pair, index, this);
+		item->extime = Sim->curtime + delay;
+		item->name = "rcvch";
+		Sim->Schedule(item);
+	}
+	else
+	{
+
+	}
+
+	return 0;
 }
 
 //Node
@@ -429,129 +460,137 @@ int Node::Updateformeasure(SimRoot * Sim)
 
 int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 {
-	if (from->from->prevNoderight == this) // receive to leftside memories , TODO: dont use prevNode, use Channel->from
+	if (pair->simstate != 1)
 	{
-		cout << "left";
-		int check = 0;
-		bool found = false;
-		for (int i = 0; i < memsize && !found; i++)
+		if (from->from->prevNoderight == this) // receive to leftside memories 
 		{
-			if (memleft[i].pair == NULL)
+			cout << "left";
+			int check = 0;
+			bool found = false;
+			for (int i = 0; i < memsize && !found; i++)
 			{
-				found = true;
-				check = i;
-			}
-		}
-		if (found) // there's space for the qubit
-		{
-			cout << "0";
-			memleft[check].pair = pair;
-			memleft[check].pairindex = index;
-			memleft[check].state = 1;
-			pair->mem[index] = &memleft[check];
-			if (type == 0) // check whether this node is the bottom -> has to start measure chain
-			{
-				if(prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
-			}
-			else memleft[check].ReadytoMeasure = false;
-			//check if both sides of the pair have arrived
-			if (pair->mem[0] != NULL && pair->mem[1] != NULL)
-			{
-				cout << "2";
-				if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+				if (memleft[i].pair == NULL)
 				{
-					Node * leftnode;
-					leftnode = from->from->prevNodeleft;
-					double delay;
-					delay = from->from->leftch->length + from->from->rightch->length;
-					SimItem *item = new SimItem;
-					item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, leftnode, this);
-					item->extime = Sim->curtime + delay;
-					item->name = "chrecscl";
-					Sim->Schedule(item);
+					found = true;
+					check = i;
 				}
 			}
-
-		}
-		else // delete pair if we cant store it
-		{
-			if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+			if (found) // there's space for the qubit
 			{
-				pair->mem[0]->pair = NULL;
-				pair->mem[0]->ReadytoMeasure = false;
-				pair->mem[0]->state = 0;
-			}
-			if (pair->mem[1] != NULL)
-			{
-				pair->mem[1]->pair = NULL;
-				pair->mem[1]->ReadytoMeasure = false;
-				pair->mem[1]->state = 0;
-			}
-			delete pair;
-		}
-
-	}
-	if (from->from->prevNodeleft == this) // receive to rightside memories
-	{
-		cout << "right";
-		int check = 0;
-		bool found = false;
-		for (int i = 0; i < memsize && !found; i++)
-		{
-			if (memright[i].pair == NULL)
-			{
-				found = true;
-				check = i;
-			}
-		}
-		if (found) // there's space for the qubit
-		{
-			cout << "1";
-			memright[check].pair = pair;
-			memright[check].pairindex = index;
-			memright[check].state = 1;
-			pair->mem[index] = &memright[check];
-			if (type == 0) // check whether this node is the bottom -> has to start measure chain
-			{
-				if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
-			}
-			else memright[check].ReadytoMeasure = false;
-			//check if both sides of the pair have arrived
-			if (pair->mem[0] != NULL && pair->mem[1] != NULL)
-			{
-				cout << "3";
-				if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+				cout << "0";
+				memleft[check].pair = pair;
+				memleft[check].pairindex = index;
+				memleft[check].state = 1;
+				pair->mem[index] = &memleft[check];
+				if (type == 0) // check whether this node is the bottom -> has to start measure chain
 				{
-					Node * rightnode;
-					rightnode = from->from->prevNoderight;
-					double delay;
-					delay = from->from->leftch->length + from->from->rightch->length;
-					SimItem *item = new SimItem;
-					item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, this, rightnode);
-					item->extime = Sim->curtime + delay;
-					item->name = "chrecscr";
-					Sim->Schedule(item);
+					if (prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
+				}
+				else memleft[check].ReadytoMeasure = false;
+				//check if both sides of the pair have arrived
+				if (pair->mem[0] != NULL && pair->mem[1] != NULL)
+				{
+					cout << "2" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
+					if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+					{
+						Node * leftnode;
+						leftnode = from->from->prevNodeleft;
+						double delay;
+						delay = (from->from->leftch->length + from->from->rightch->length) * 5;
+						SimItem *item = new SimItem;
+						item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, leftnode, this);
+						item->extime = Sim->curtime + delay;
+						item->name = "chrecscl";
+						Sim->Schedule(item);
+					}
+				}
+
+			}
+			else // delete pair if we cant store it
+			{
+				if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+				{
+					pair->mem[0]->pair = NULL;
+					pair->mem[0]->ReadytoMeasure = false;
+					pair->mem[0]->state = 0;
+					pair->mem[0] = NULL;
+				}
+				if (pair->mem[1] != NULL)
+				{
+					pair->mem[1]->pair = NULL;
+					pair->mem[1]->ReadytoMeasure = false;
+					pair->mem[1]->state = 0;
+					pair->mem[1] = NULL;
+				}
+				pair->simstate = 1;
+			}
+
+		}
+		if (from->from->prevNodeleft == this) // receive to rightside memories
+		{
+			cout << "right";
+			int check = 0;
+			bool found = false;
+			for (int i = 0; i < memsize && !found; i++)
+			{
+				if (memright[i].pair == NULL)
+				{
+					found = true;
+					check = i;
 				}
 			}
+			if (found) // there's space for the qubit
+			{
+				cout << "1";
+				memright[check].pair = pair;
+				memright[check].pairindex = index;
+				memright[check].state = 1;
+				pair->mem[index] = &memright[check];
+				if (type == 0) // check whether this node is the bottom -> has to start measure chain
+				{
+					if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
+				}
+				else memright[check].ReadytoMeasure = false;
+				//check if both sides of the pair have arrived
+				if (pair->mem[0] != NULL && pair->mem[1] != NULL)
+				{
+					cout << "3" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
+					if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
+					{
+						Node * rightnode;
+						rightnode = from->from->prevNoderight;
+						double delay;
+						delay = (from->from->leftch->length + from->from->rightch->length) * 5;
+						SimItem *item = new SimItem;
+						item->FuncToCall = bind(&Node::ReceiveFromChSuccess, this, Sim, pair, this, rightnode);
+						item->extime = Sim->curtime + delay;
+						item->name = "chrecscr";
+						Sim->Schedule(item);
+					}
+				}
+
+			}
+			else // prepare pair for deletion (th)
+			{
+				if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+				{
+					pair->mem[0]->pair = NULL;
+					pair->mem[0]->ReadytoMeasure = false;
+					pair->mem[0]->state = 0;
+					pair->mem[0] = NULL;
+				}
+				if (pair->mem[1] != NULL)
+				{
+					pair->mem[1]->pair = NULL;
+					pair->mem[1]->ReadytoMeasure = false;
+					pair->mem[1]->state = 0;
+					pair->mem[1] = NULL;
+				}
+				pair->simstate = 1;
+
+			}
 
 		}
-		else // delete pair if we cant store it
-		{
-			if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
-			{
-				pair->mem[0]->pair = NULL;
-				pair->mem[0]->ReadytoMeasure = false;
-				pair->mem[0]->state = 0;
-			}
-			if (pair->mem[1] != NULL)
-			{
-				pair->mem[1]->pair = NULL;
-				pair->mem[1]->ReadytoMeasure = false;
-				pair->mem[1]->state = 0;
-			}
-			delete pair;
-		}
-
 	}
 	return 0;
 }
@@ -574,5 +613,37 @@ int Node::ReceiveFromChSuccess(SimRoot * Sim, QPair * pair, Node * nodeleft, Nod
 	Sim->Schedule(right);
 
 
+	return 0;
+}
+
+int Node::GenEPR(SimRoot * Sim)
+{
+	QPair * pair = epr->generatep();
+	//send left
+	SimItem * left = new SimItem;
+	left->FuncToCall = bind(&Channel::SendThrough, leftch, Sim, pair, 0);
+	left->extime = Sim->curtime;
+	left->name = "thrch";
+	Sim->Schedule(left);
+	// send right
+	SimItem * right = new SimItem;
+	right->FuncToCall = bind(&Channel::SendThrough, rightch, Sim, pair, 1);
+	right->extime = Sim->curtime;
+	right->name = "thrch";
+	Sim->Schedule(right);
+	//Schedule next generation
+	/*
+	SimItem * gen = new SimItem;
+	gen->FuncToCall = bind(&Node::GenEPR, this, Sim);
+	gen->extime = Sim->curtime + epr->rate;
+	gen->name = "eprgen";
+	Sim->Schedule(gen);
+	//*/
+	//Schedule conditional delayed deletion
+	SimItem * del = new SimItem;
+	del->FuncToCall = bind(CondDeletePair, pair);
+	del->extime = Sim->curtime + (leftch->length + rightch->length) * 25;
+	del->name = "delch";
+	Sim->Schedule(del);
 	return 0;
 }

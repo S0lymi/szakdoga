@@ -2,7 +2,7 @@
 
 //QPair
 
-QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2)
+QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2, int simstatek)
 {
 	state = new Vector4cd;
 	if (statek != NULL)
@@ -24,6 +24,7 @@ QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2)
 
 	mem[0] = mem1;
 	mem[1] = mem2;
+	simstate = simstatek;
 }
 
 QPair::~QPair()

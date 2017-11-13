@@ -33,12 +33,12 @@
 %--------------------------------------------------------------------------------------
 % Main variables
 %--------------------------------------------------------------------------------------
-\newcommand{\vikszerzo}{B�dis-Szomor� Andr�s}
-\newcommand{\vikkonzulens}{dr.~Konzulens Elem�r}
-\newcommand{\vikcim}{Elektronikus terel�k}
-\newcommand{\viktanszek}{M�r�stechnika �s Inform�ci�s Rendszerek Tansz�k}
-\newcommand{\vikdoktipus}{Diplomaterv}
-\newcommand{\vikdepartmentr}{B�dis-Szomor� Andr�s}
+\newcommand{\vikszerzo}{Solymos Balázs}
+\newcommand{\vikkonzulens}{dr.~Bacsárdi László}
+\newcommand{\vikcim}{Összefonódás megosztásának vizsgálata kvantum alapú hálózatokban }
+\newcommand{\viktanszek}{Hálózati Rendszerek és Szolgáltatások Tanszék}
+\newcommand{\vikdoktipus}{Szakdolgozat}
+\newcommand{\vikdepartmentr}{asd}
 
 %--------------------------------------------------------------------------------------
 % Page layout setup
@@ -134,6 +134,10 @@
 	manifesto,%
 	szakmai2,%
 	bevelmelet,%
+	bevezetes,%
+	tori,%
+	simulation,%
+	results,%
 }
 %--------------------------------------------------------------------------------------
 %	Setup captions
@@ -158,9 +162,9 @@ aboveskip=10pt}
 
 \pagenumbering{arabic}
 \onehalfspacing
-%\include{titlepage}
-%\tableofcontents\vfill
-%\include{declaration}
+\include{titlepage}
+\tableofcontents\vfill
+\include{declaration}
 %\include{abstract}
 %\include{introduction}
 %\include{chapter1}
@@ -170,13 +174,17 @@ aboveskip=10pt}
 %\include{szakmai1}
 %\include{manifesto}
 %\include{szakmai2}
+\include{bevezetes}
+\include{tori}
 \include{bevelmelet}
+\include{simulation}
+\include{results}
 
 %\listoffigures\addcontentsline{toc}{chapter}{�br�k jegyz�ke}
 %\listoftables\addcontentsline{toc}{chapter}{T�bl�zatok jegyz�ke}
 
 \bibliography{szakdoga}
-\addcontentsline{toc}{chapter}{Irodalomjegyz�k}
+\addcontentsline{toc}{chapter}{Irodalomjegyzék}
 \bibliographystyle{ieeetr}
 
 %\include{appendices}

@@ -11,9 +11,10 @@ class EPR
 public:
 	double fidelity;
 	Vector4cd *state;
+	double rate;
 
 	//konst
-	EPR(Vector4cd * statek = NULL, double fidelityk = 1);
+	EPR(Vector4cd * statek = NULL, double fidelityk = 1,double ratek = 10);
 	//dest
 	~EPR();
 	//other
@@ -54,6 +55,8 @@ public:
 	//other
 	bool through(QPair * pair, int pairindex);
 
+	int SendThrough(SimRoot * Sim, QPair * pair, int index);
+
 };
 
 
@@ -90,6 +93,8 @@ public:
 
 	int ReceiveFromChSuccess(SimRoot *Sim, QPair * pair, Node * nodeleft, Node * noderight);
 
+	int GenEPR(SimRoot * Sim);
+
 
 };
 
@@ -99,3 +104,5 @@ double abs2(complex<double> n);
 Matrix4cd Kronecker(Matrix2cd  m1, Matrix2cd  m2);
 
 void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, double * distleft, double * distright);
+
+int CondDeletePair(QPair* pair);

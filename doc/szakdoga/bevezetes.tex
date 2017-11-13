@@ -1,0 +1,25 @@
+\chapter{Bevezetés}
+
+\section{Motiváció}
+
+A számítógépes rendszerek elterjedésének természtes következménye volt az őket összekötő hálózatok megjelenése és fejlődése. Napjainkban egyre kevesebb olyan eszközt találni, amely ne lenne alkalmas egy ilyen hálózatra való csatlakozásra, rengetek alkalmazás és funkció van, ami valamilyen hálózatból kapott információra támaszkodik működése során. Tekintve a kvantummechanikára építő technológiai megoldások fejlődését, kísérleti kvantumszámítógépek jelenlegi állását\cite{IBMQC}\cite{neill2017blueprint} , az ilyen kvantumos erőforrásokat használó eszközök összekötésére alkalmas hálózatokra is igény lesz. További motivációt jelent még, hogy ezen kvantumos információ továbbítására alkalmas hálózatok sok más felhasználási lehetőséget kínálnak a leendő kvantumszámítógépek összekapcsolásán túl. Ezek közül talán a legismertebb és legelterjedtebb a kvantum kulcsszétosztás, ahol kvantumos állapotokat használunk titkosított kulcsok bizonyítottan biztonságos megosztására.\cite{BB84} Ezt a technológiát már a valós életben is használják, nem csak kutatási célokra.\cite{Swisselection} Mindezek hatására egyre nő az egyre nagyobb ilyen hálózatokra való igény, egy jövőbeli kvantum internet\cite{kimble2008quantum} megvalósítára való törekvés. Ennek jelenleg a legnagyobb gátat a távolság jelenti. A klasszikus információval ellentétben a kvantumos infromáció nem másolható \cite{wootters1982single}, emiatt a klasszikushoz hasonló erősítők sem alkalmazhatóak a kommunikációs csatorna által okozott veszteségek korrigálására. Ezt leküzdendő születtek meg különböző megvalósítások, az egyik ilyenek egy csoportja az ún. kvantum ismétlők. Itt a fő cél a küldő és a fogadő állomás között összefonódott párok megosztása. Ezután az összefonódás különös tulajdonságait felhasználva a felek már különböző kvantumos műveletekre képesek. Tetszőleges kvantumbit küldése például a párok és egy klasszikus kommunikációs csatorna valamint a kvantum teleportációs protokoll\cite{bennett1993teleporting} segítségével már megvalósítható. A kvantum ismétlő protokollok ugyan működésük kvantumos alapokon nyugszik, a velük kapcsolatos megoldandó problémák jelentős része hasonlít a klasszikus hálózatokban felmerülőkhöz. Ezen protokollok hatékony megvalósításhoz is szükséges több elosztott erőforrás megfelelő együttműködése, itt is fontos szerepet kap példul a hibakezelés, vagy éppen az adott lépések megfelelően összehangolt végrehajtási sorrendje. 
+
+\section{Feladatkiírás}
+A feladatkiírás négy főbb pontot jelöl meg a dolgozat témáját tekintve, a következőképpen:\\
+(\textit{idézve a feladatkiírásból})\\
+
+A hallgató feladatának a következőkre kell kiterjednie:
+\begin{itemize}
+\item A kapcsolódó szakirodalom áttekintésével mutassa be a kvantum alapú informatikát és
+kvantum alapú kommunikációt!
+\item Mutassa be részletesen az összefonódás megosztásának elvét és ismertesse a különböző
+felhasználási lehetőségeket, valamint technológiai megoldásokat!
+\item Válasszon alkalmas szoftverkörnyezetet és készítsen szimulációt az összefonódás
+megosztásának lehetőségeinek vizsgálatára kvantum alapú vezetékes és vezeték nélküli
+hálózatokban!
+\item Értékelje a kapott eredményeket!
+\end{itemize}
+Ennek megfelelően a dolgozatot egy gyors történeti áttekintés, majd egy hosszabb elméleti bevezető nyitja. Ezek után a készített szimuláció leírása, majd végül a szimulációs eredmények és ezeken keresztül egyes technológiai megvalósítási lehetőségek áttekintésével zárul.
+
+
+
