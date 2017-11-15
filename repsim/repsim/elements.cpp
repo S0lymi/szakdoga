@@ -647,3 +647,26 @@ int Node::GenEPR(SimRoot * Sim)
 	Sim->Schedule(del);
 	return 0;
 }
+
+Vector4cd Cheapstatefid(double fid)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<unsigned int> dist(0, 20000000000);
+	std::srand(dist(gen));
+	Vector4cd v1, vr;
+	v1 << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
+	vr.setRandom();
+	v1 = sqrt(fid)*v1;
+	vr(0) = 0;
+	vr(3) = 0;
+	vr = (vr / sqrt(vr.cwiseAbs2().sum()))*sqrt(1 - fid);
+	v1 = v1 + vr;
+
+	return v1;
+}
+
+double Vec4Calcfid(Vector4cd state, Vector4cd target)
+{
+	return (state.adjoint()*(target*target.adjoint())*state).norm();
+}

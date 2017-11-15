@@ -106,3 +106,7 @@ Matrix4cd Kronecker(Matrix2cd  m1, Matrix2cd  m2);
 void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, double * distleft, double * distright);
 
 int CondDeletePair(QPair* pair);
+
+Vector4cd Cheapstatefid(double fid);
+
+double Vec4Calcfid(Vector4cd state, Vector4cd target);

@@ -75,6 +75,49 @@ void Makepow2tree(Node nodes[], int min, int max, Node * parent,int pindex,doubl
 
 }
 
+void InitLintree(Node nodes[],Node eprnodes[],Channel channels[],EPR * epr, int size, double dist, double chalength)
+{
+	for (int i = 0; i < size*2; i++)//set up channels between nodes
+	{
+		channels[i].from = &eprnodes[i / 2];
+		channels[i].to = &nodes[(i + 1) / 2];
+		channels[i].length = dist/2;
+		channels[i].alength = chalength;
+	}
+
+	for (int i = 0; i < size; i++) // set up EPR nodes
+	{
+		eprnodes[i].prevNodeleft = &nodes[i];
+		eprnodes[i].prevNoderight = &nodes[i + 1];
+		eprnodes[i].leftch = &channels[i * 2];
+		eprnodes[i].prevdistleft = channels[i * 2].length;
+		eprnodes[i].rightch = &channels[i * 2 + 1];
+		eprnodes[i].prevdistright = channels[i * 2 + 1].length;
+		eprnodes[i].epr = epr;
+		eprnodes[i].type = 1;
+	}
+
+	for (int i = 2; i < size; i++) // sets nodes 2 ... n-1
+	{
+		nodes[i].nextNode = &nodes[i + 1];
+		nodes[i].nextdist = dist;
+		nodes[i].prevNoderight = &eprnodes[i];
+		nodes[i].prevdistright = nodes[i].prevNoderight->leftch->length;
+		nodes[i].prevNodeleft = &nodes[i - 1];
+		nodes[i].prevdistleft = nodes[i].prevNodeleft->nextdist;
+	}
+	nodes[0].type = 2;
+	nodes[size + 1].type = 2;
+	//first node after endpoint is special, because it does the first measurement in the chain
+	nodes[1].nextNode = &nodes[2];
+	nodes[1].nextdist = dist;
+	nodes[1].prevNoderight = &eprnodes[1];
+	nodes[1].prevdistright = nodes[1].prevNoderight->leftch->length;
+	nodes[1].prevNodeleft = &eprnodes[0];
+	nodes[1].prevdistleft = nodes[1].prevNodeleft->rightch->length;
+
+}
+
 void printNodeinf(Node* node)
 {
 	cout << endl << "parent:" << node->nextNode << endl << "self: " << node << endl << "left: " << node->prevNodeleft << "   dist: " << node->prevdistleft <<
@@ -86,10 +129,17 @@ int printszam(int i)
 	return i;
 }
 
-
 int main()
 {
 	
+	double fid;
+	Vector4cd T, v1;
+	T << 1 / sqrt(2), 0, 0, 1/sqrt(2);
+	cin >> fid;
+	v1 = Cheapstatefid(fid);
+	cout << "v1: " << endl << v1 << endl << "fid:" << Vec4Calcfid(v1, T) << endl;
+
+
 	/*
 	Matrix2cd g1, g2, gi;
 	Matrix4cd gkomb1,gkomb2;
@@ -112,7 +162,88 @@ int main()
 	cout << endl << gkomb2*v1 << endl;
 	cout << endl << gkomb2*gkomb1*v1 << endl;
 	//*/
+	/*
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<unsigned int> dist(0, 20000000000);
+	std::srand( dist(gen));
 
+	double fid;
+	cin >> fid;
+	Matrix4cd R, RU, RU2;
+	R.setRandom();
+	//cout << endl << R << endl;
+	Matrix4cd gi;
+	gi = Matrix4cd::Identity();
+	//cout << endl << R << endl;
+	HouseholderQR<Matrix4cd> qr(R);
+	RU = qr.householderQ();
+	//cout <<"unitary:"<< endl << RU << endl;
+	RU = (1-fid)*RU + fid*gi;
+	//cout << "unitary+i:" << endl << RU << endl;
+	HouseholderQR<Matrix4cd> qr2(RU);
+	RU2 = qr2.householderQ();
+	//cout << "unitary2:" << endl << RU2 << endl;
+	double f = 1;
+	Vector4cd v1, v2, vr;
+	//vr.setRandom();
+	//vr = vr / sqrt(vr.cwiseAbs2().sum());
+	//cout << endl << "vr: " << vr << endl << "abs: " << vr.cwiseAbs2().sum() << endl;
+	v1 << 0.707, 0, 0, 0.707;
+	v2 << 0.707, 0, 0, 0.707;
+	Vector4cd M;
+	M << 0.707, 0, 0, 0.707;
+	v2 = sqrt(fid)*v1;
+	vr.setRandom();
+	vr(0) = 0;
+	vr(3) = 0;
+	cout << endl << vr.cwiseAbs2().sum() << endl;
+	vr = (vr / sqrt(vr.cwiseAbs2().sum()))*sqrt(1-fid);
+	cout << endl << "vr: " << vr << endl << "vrabs: " << vr.cwiseAbs2().sum() << endl;
+
+	v2 = v2 + vr;
+	Matrix4cd fidgate;
+	double fidossz=0;
+	double fidmin=1;
+	double fidmax=0;
+	//v2 = RU2*M;
+	//cout << endl << RU2*M << endl;
+	cout <<"v1: "<<endl<< v1 << endl << "abs: " << v1.cwiseAbs2().sum() << endl <<"v2: "<< endl<< v2 << endl << "abs:" << v2.cwiseAbs2().sum() << endl;
+	cout << endl << "v1fid: " << (v1.adjoint()*(M*M.adjoint())*v1).norm() << endl;
+	cout << endl << "v2fid: " << (v2.adjoint()*(M*M.adjoint())*v2).norm() << endl;
+	
+	Vector4cd vtest;
+	vtest = Cheapstatefid(fid);
+	cout << endl << endl;
+	cout << "v1: " << endl << v1 << endl << "abs: " << v1.cwiseAbs2().sum() << endl << "v2t: " << endl << vtest << endl << "abs:" << vtest.cwiseAbs2().sum() << endl;
+	cout << endl << "v1fid: " << (v1.adjoint()*(M*M.adjoint())*v1).norm() << endl;
+	cout << endl << "v2tfid: " << (vtest.adjoint()*(M*M.adjoint())*vtest).norm() << endl;
+	//*/
+	/*for (int i = 0; i < 1000; i++)
+	{
+		R.setRandom();
+		HouseholderQR<Matrix4cd> qr(R);
+		RU = qr.householderQ();
+		cout << "unitary:" << endl << RU << endl;
+		RU = (1 - fid)*RU + fid*gi;
+		cout << "unitary+i:" << endl << RU << endl;
+		HouseholderQR<Matrix4cd> qr2(RU);
+		RU2 = qr2.householderQ();
+		cout << "unitary2:" << endl << RU2 << endl;
+		v2 = RU2*M;
+		//fidgate = ((1 - fid)*RU + (fid)*gi);
+		//cout << endl << "fidgate: " << endl << fidgate << endl;
+		//v2 = ((1 - fid)*vr + (fid)*v1) / sqrt(((1 - fid)*vr + (fid)*v1).cwiseAbs2().sum());
+		cout << v1 << endl << "abs: " << v1.cwiseAbs2().sum() << endl << v2 << endl << "abs:" << v2.cwiseAbs2().sum() << endl;
+		cout << endl << "v1fid: " << (v1.adjoint()*(M*M.adjoint())*v1).norm() << endl;
+		cout << endl << "v2fid: " << (v2.adjoint()*(M*M.adjoint())*v2).norm() << endl;
+		fidossz = fidossz + (v2.adjoint()*(M*M.adjoint())*v2).norm();
+		if ((v2.adjoint()*(M*M.adjoint())*v2).norm() > fidmax) fidmax = (v2.adjoint()*(M*M.adjoint())*v2).norm();
+		if ((v2.adjoint()*(M*M.adjoint())*v2).norm() < fidmin) fidmin = (v2.adjoint()*(M*M.adjoint())*v2).norm();
+		//vr.setRandom();
+	}
+	//*/
+	//cout << endl << "atl: " << fidossz / 1000 << endl << "min: " << fidmin << endl << "max: " << fidmax << endl;
 	/*
 	Pair2Measure bellm;
 	bellm.SetBellMeasure();
@@ -334,3 +465,4 @@ int main()
 	fszam();
 	*/
 }
+
