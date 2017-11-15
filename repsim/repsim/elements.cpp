@@ -241,7 +241,7 @@ void NodestoCorrect(Node * parent, Node ** correctleft, Node **correctright, dou
 
 int CondDeletePair(QPair * pair)
 {
-	if (pair->simstate == 1)
+	if (pair->simstate[0] == 1 || pair->simstate[1] == 1)
 	{
 		delete pair;
 	}
@@ -250,12 +250,13 @@ int CondDeletePair(QPair * pair)
 
 //Channel
 
-Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok)
+Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok, int modek)
 {
 	to = tok;
 	from = fromk;
 	length = lengthk;
 	alength = alengthk;
+	mode = modek;
 }
 
 Channel::~Channel()
@@ -281,8 +282,12 @@ bool Channel::through(QPair * pair, int pairindex)
 
 int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
 {
-	double success;
-	if (true)
+	//generate random
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+	double rand = dis(gen);
+	if (mode == 1 || rand <= exp(-length / alength)) // success
 	{
 		double delay;
 		delay = length * 5;
@@ -291,10 +296,12 @@ int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
 		item->extime = Sim->curtime + delay;
 		item->name = "rcvch";
 		Sim->Schedule(item);
+		cout << " chsucc " << endl;
 	}
-	else
+	else //fail -> has to delete pair
 	{
-
+		pair->simstate[index] = 1;
+		cout << " chfail " << endl;
 	}
 
 	return 0;
@@ -407,7 +414,7 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 			Sim->Schedule(check);
 		//*/
 		//freeing memories
-		//delete m2->pair;
+		delete m2->pair;
 		m2->ReadytoMeasure = false;
 		m1->ReadytoMeasure = false;
 		m1->pair = NULL;
@@ -460,7 +467,8 @@ int Node::Updateformeasure(SimRoot * Sim)
 
 int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 {
-	if (pair->simstate != 1)
+	cout << endl << "Receive: " << pair << " sim: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+	if (pair->simstate[0] != 1 && pair->simstate[1] != 1)
 	{
 		if (from->from->prevNoderight == this) // receive to leftside memories 
 		{
@@ -482,6 +490,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				memleft[check].pairindex = index;
 				memleft[check].state = 1;
 				pair->mem[index] = &memleft[check];
+				pair->simstate[index] = 3;
 				if (type == 0) // check whether this node is the bottom -> has to start measure chain
 				{
 					if (prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
@@ -504,25 +513,38 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						Sim->Schedule(item);
 					}
 				}
+				cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 			}
 			else // delete pair if we cant store it
 			{
-				if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+				//check if other half of the pair have arrived -> has to delete pair
+				if (pair->simstate[!index] == 3)
 				{
-					pair->mem[0]->pair = NULL;
-					pair->mem[0]->ReadytoMeasure = false;
-					pair->mem[0]->state = 0;
-					pair->mem[0] = NULL;
+					if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+					{
+						pair->mem[0]->pair = NULL;
+						pair->mem[0]->ReadytoMeasure = false;
+						pair->mem[0]->state = 0;
+						pair->mem[0] = NULL;
+					}
+					if (pair->mem[1] != NULL)
+					{
+						pair->mem[1]->pair = NULL;
+						pair->mem[1]->ReadytoMeasure = false;
+						pair->mem[1]->state = 0;
+						pair->mem[1] = NULL;
+					}
+					delete pair;
+					cout << "pairdel2" << endl;
 				}
-				if (pair->mem[1] != NULL)
+				//other half not arrived yet->mark for delete
+				else
 				{
-					pair->mem[1]->pair = NULL;
-					pair->mem[1]->ReadytoMeasure = false;
-					pair->mem[1]->state = 0;
-					pair->mem[1] = NULL;
+					pair->simstate[index] = 1;
+					cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+
 				}
-				pair->simstate = 1;
 			}
 
 		}
@@ -546,6 +568,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				memright[check].pairindex = index;
 				memright[check].state = 1;
 				pair->mem[index] = &memright[check];
+				pair->simstate[index] = 3;
 				if (type == 0) // check whether this node is the bottom -> has to start measure chain
 				{
 					if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
@@ -568,29 +591,46 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						Sim->Schedule(item);
 					}
 				}
+				cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 			}
-			else // prepare pair for deletion (th)
+			else // pair has to be deleted
 			{
-				if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+				//check if other half of the pair have arrived -> has to delete pair
+				if (pair->simstate[!index] == 3)
 				{
-					pair->mem[0]->pair = NULL;
-					pair->mem[0]->ReadytoMeasure = false;
-					pair->mem[0]->state = 0;
-					pair->mem[0] = NULL;
+					if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
+					{
+						pair->mem[0]->pair = NULL;
+						pair->mem[0]->ReadytoMeasure = false;
+						pair->mem[0]->state = 0;
+						pair->mem[0] = NULL;
+					}
+					if (pair->mem[1] != NULL)
+					{
+						pair->mem[1]->pair = NULL;
+						pair->mem[1]->ReadytoMeasure = false;
+						pair->mem[1]->state = 0;
+						pair->mem[1] = NULL;
+					}
+					delete pair;
+					cout << "pairdel2" << endl;
 				}
-				if (pair->mem[1] != NULL)
+				//other half not arrived yet->mark for delete
+				else
 				{
-					pair->mem[1]->pair = NULL;
-					pair->mem[1]->ReadytoMeasure = false;
-					pair->mem[1]->state = 0;
-					pair->mem[1] = NULL;
-				}
-				pair->simstate = 1;
+					pair->simstate[index] = 1;
+					cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
+				}
 			}
 
 		}
+	}
+	else
+	{
+		delete pair;
+		cout << "delpair" << endl;
 	}
 	return 0;
 }
@@ -640,11 +680,12 @@ int Node::GenEPR(SimRoot * Sim)
 	Sim->Schedule(gen);
 	//*/
 	//Schedule conditional delayed deletion
-	SimItem * del = new SimItem;
+	/*SimItem * del = new SimItem;
 	del->FuncToCall = bind(CondDeletePair, pair);
-	del->extime = Sim->curtime + (leftch->length + rightch->length) * 25;
+	del->extime = Sim->curtime + (leftch->length + rightch->length) * 2;
 	del->name = "delch";
 	Sim->Schedule(del);
+	//*/
 	return 0;
 }
 

@@ -131,14 +131,14 @@ int printszam(int i)
 
 int main()
 {
-	
+	/*
 	double fid;
 	Vector4cd T, v1;
 	T << 1 / sqrt(2), 0, 0, 1/sqrt(2);
 	cin >> fid;
 	v1 = Cheapstatefid(fid);
 	cout << "v1: " << endl << v1 << endl << "fid:" << Vec4Calcfid(v1, T) << endl;
-
+	//*/
 
 	/*
 	Matrix2cd g1, g2, gi;
@@ -362,7 +362,8 @@ int main()
 	//delete nodes[1].memleft[0].pair;
 	//delete p1;
 	//*/
-	/*
+
+	///*
 	Sim.printlisttimes();
 	int a=0;
 
@@ -372,8 +373,8 @@ int main()
 		eprnodes[1].GenEPR(&Sim);
 		while (Sim.nextItem != NULL)
 		{
-			Sim.ExecuteNext();
 			Sim.printlisttimes();
+			Sim.ExecuteNext();
 			cout << " " << nodes[2].memleft[0].ReadytoMeasure << " " << nodes[2].memright[0].ReadytoMeasure << " " << &nodes[2].memleft[0] << " " << &nodes[2].memright[0] << endl;
 		}
 		cin >> a;

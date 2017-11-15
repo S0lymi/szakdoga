@@ -46,8 +46,9 @@ public:
 	double length;
 	Node * from;
 	Node * to;
+	int mode;
 	//konst
-	Channel(double lengthk=0, double alengthk=0,Node* fromk=NULL, Node* to=NULL);
+	Channel(double lengthk = 0, double alengthk = 0, Node* fromk = NULL, Node* to = NULL, int modek = 0);
 
 	//dest
 	~Channel();
