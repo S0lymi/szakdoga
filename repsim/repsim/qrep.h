@@ -47,5 +47,6 @@ public:
 	~QMem();
 	//other
 	void print();
+	void reset();
 
 };

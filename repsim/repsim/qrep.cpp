@@ -120,3 +120,11 @@ void QMem::print()
 {
 	cout << endl << "pair: " << pair << endl << "pairindex: " << pairindex << endl << "maxtime: " << maxtime << endl << "rdy: " << ReadytoMeasure << endl << "fid: " << fid << endl;
 }
+
+void QMem::reset()
+{
+	pair = NULL;
+	maxtime = 0;
+	ReadytoMeasure = false;
+	state = 0;
+}

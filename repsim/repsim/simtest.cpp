@@ -363,7 +363,67 @@ int main()
 	//delete p1;
 	//*/
 
-	///*
+	QPair * p1,* p2;
+	p1 = new QPair;
+	p2 = new QPair;
+	Vector4cd target;
+	target << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
+	*p1->state = Cheapstatefid(0.6);
+	*p2->state = Cheapstatefid(0.6);
+	cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
+	cout << endl << "p2: " << *p2->state << endl << "p2fid: " << Vec4Calcfid(*p2->state, target) << endl;
+	int tova = 0;
+	while (tova != 1)
+	{
+		QPair * auxpair = new QPair;
+		*auxpair->state = Cheapstatefid(0.7);
+		int result = DEJPurif(p1, auxpair);
+		if (result == 0)
+		{
+			p1 = new QPair;
+			*p1->state = Cheapstatefid(0.7);
+		}
+		cout << endl << "result: " << result << endl;
+		if (result == 1)
+		{
+			cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
+		}
+		cin >> tova;
+
+	}
+	cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
+	//int result = DEJPurif(p1, p2);
+	//cout << endl << "result:  " << result << endl;
+	//if (result!=0) cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
+	//DEJ2Purif(p1, p2);
+
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<unsigned int> dist(0, 20000000000);
+	std::srand(dist(gen));
+
+	Vector4cd v1, v2;
+	v1.setRandom();
+	v1 = v1*(1 / sqrt(v1.cwiseAbs2().sum()));
+	cout << endl <<"asd  "<< v1.cwiseAbs2().sum() << endl;
+	v2 << 2, 3, 4, 5;
+	Vector4cd vt1, vt2,vt3,vt4;
+	vt1 << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
+	vt2 << 1 / sqrt(2), 0, 0, -1 / sqrt(2);
+	vt3 << 0, 1 / sqrt(2), 1 / sqrt(2), 0;
+	vt4 << 0, 1 / sqrt(2), -1 / sqrt(2), 0;
+	cout << endl << "v1: " << endl << v1 << endl;
+	cout << endl << Vec4Calcfid(v1, vt1) << endl << Vec4Calcfid(v1, vt2) << endl << Vec4Calcfid(v1, vt3) << endl << Vec4Calcfid(v1, vt4) << endl;
+	Matrix4cd toBell;
+	toBell << vt1.transpose(), vt2.transpose(), vt3.transpose(), vt4.transpose();
+	cout << endl << toBell << endl;
+	cout << endl << (toBell*v1).cwiseAbs2() << endl;
+
+
+
+
+	/*
 	Sim.printlisttimes();
 	int a=0;
 

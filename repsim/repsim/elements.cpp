@@ -325,7 +325,8 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 	leftch = leftchk;
 	rightch = rightchk;
 	type = 0;
-
+	purification = NULL;
+	targetfid = 0.98;
 }
 
 Node::~Node()
@@ -710,4 +711,108 @@ Vector4cd Cheapstatefid(double fid)
 double Vec4Calcfid(Vector4cd state, Vector4cd target)
 {
 	return (state.adjoint()*(target*target.adjoint())*state).norm();
+}
+
+//
+int DEJPurif(QPair * pair1, QPair * pair2)
+{
+	Matrix2cd A, B;
+	A << 1, 0.0 - 1i, 0.0 - 1i, 1;
+	B << 1, 0.0 + 1i, 0.0 + 1i, 1;
+	A = (1 / sqrt(2))*A;
+	B = (1 / sqrt(2))*B;
+	Matrix4cd joint;
+	Matrix4cd AB;
+	AB = Kronecker(A, B);
+	*pair1->state = AB *(*pair1->state);
+	*pair2->state = AB *(*pair2->state);
+	Matrix < complex<double>, 16, 16> CNOT2;
+	CNOT2.setZero();
+	//set CNOT2
+	CNOT2(0, 0) = 1;
+	CNOT2(1, 1) = 1;
+	CNOT2(2, 2) = 1;
+	CNOT2(3, 3) = 1;
+	CNOT2(4, 5) = 1;
+	CNOT2(5, 4) = 1;
+	CNOT2(6, 7) = 1;
+	CNOT2(7, 6) = 1;
+	CNOT2(8, 10) = 1;
+	CNOT2(9, 11) = 1;
+	CNOT2(10, 8) = 1;
+	CNOT2(11, 9) = 1;
+	CNOT2(12, 15) = 1;
+	CNOT2(13, 14) = 1;
+	CNOT2(14, 13) = 1;
+	CNOT2(15, 12) = 1;
+	//cout << CNOT2;
+	joint = (*pair2->state) *(pair1->state->transpose());
+	VectorXcd jstate(16);
+	for (int i = 0; i < 16; i++) jstate(i) = joint(i);
+	jstate = (CNOT2 *jstate);
+	//cout << endl << jstate << endl;
+	//cout << endl << jstate.cwiseAbs2().sum() << endl;
+	double success1 = abs2(jstate(0)) + abs2(jstate(4)) + abs2(jstate(8)) + abs2(jstate(12)) + abs2(jstate(3)) + abs2(jstate(7)) + abs2(jstate(11)) + abs2(jstate(15));
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.0, 1.0);
+	double rand = dis(gen);
+	int result = 0;
+	if (rand < success1)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			(*pair1->state)(i) = jstate(i * 4) + jstate(3 + (i * 4));
+		}
+		*pair1->state = *pair1->state * (1 / sqrt(pair1->state->cwiseAbs2().sum())); // norming
+		result = 1;
+	}
+	else
+	{
+		result = 0;
+	}
+	if (result != 0) //purification successful -> throw away 1 pair
+	{
+		if (pair2->mem[0] != NULL) pair2->mem[0]->reset();
+		if (pair2->mem[1] != NULL) pair2->mem[1]->reset();
+		delete pair2;
+	}
+	else //purification not successful-> throw away both pairs
+	{
+		if (pair1->mem[0] != NULL) pair1->mem[0]->reset();
+		if (pair1->mem[1] != NULL) pair1->mem[1]->reset();
+		delete pair1;
+
+		if (pair2->mem[0] != NULL) pair2->mem[0]->reset();
+		if (pair2->mem[1] != NULL) pair2->mem[1]->reset();
+		delete pair2;
+	}
+	return result;
+}
+
+int DEJ2Purif(QPair * pair1, QPair * pair2)
+{
+	Vector4cd vt1, vt2, vt3, vt4;
+	vt1 << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
+	vt4 << 1 / sqrt(2), 0, 0, -1 / sqrt(2);
+	vt3 << 0, 1 / sqrt(2), 1 / sqrt(2), 0;
+	vt2 << 0, 1 / sqrt(2), -1 / sqrt(2), 0;
+	Vector4d cp, tp, np;
+	cp(0) = Vec4Calcfid(*pair1->state, vt1);
+	cp(1) = Vec4Calcfid(*pair1->state, vt2);
+	cp(2) = Vec4Calcfid(*pair1->state, vt3);
+	cp(3) = Vec4Calcfid(*pair1->state, vt4);
+
+	tp(0) = Vec4Calcfid(*pair2->state, vt1);
+	tp(1) = Vec4Calcfid(*pair2->state, vt2);
+	tp(2) = Vec4Calcfid(*pair2->state, vt3);
+	tp(3) = Vec4Calcfid(*pair2->state, vt4);
+
+	double N = (cp(0) + cp(1))*(tp(0) + tp(1)) + (cp(2) + cp(3))*(tp(2) + tp(3));
+	np(0) = (cp(0)*tp(0) + cp(1)*tp(1)) / N;
+	//cout << endl << "fid:  " << np(0) << endl;
+	*pair1->state = Cheapstatefid(np(0));
+	delete pair2;
+
+	return 0;
 }

@@ -78,6 +78,8 @@ public:
 	Channel* leftch;
 	Channel* rightch;
 	int type;
+	function<int()> purification;
+	double targetfid;
 
 	//konst
 	Node(int memsizek=10,Node* prevnl=NULL,double prevdl=0, Node* prevnr = NULL, double prevdr = 0,Node* nextn=NULL,double nextd=0,EPR *eprk=NULL,Channel *leftchk=NULL, Channel * rightchk=NULL);
@@ -111,3 +113,7 @@ int CondDeletePair(QPair* pair);
 Vector4cd Cheapstatefid(double fid);
 
 double Vec4Calcfid(Vector4cd state, Vector4cd target);
+
+int DEJPurif(QPair * pair1, QPair * pair2);
+
+int DEJ2Purif(QPair * pair1, QPair * pair2);
