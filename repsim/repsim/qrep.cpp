@@ -124,7 +124,7 @@ void QMem::print()
 void QMem::reset()
 {
 	pair = NULL;
-	maxtime = 0;
 	ReadytoMeasure = false;
 	state = 0;
+	fid = 0;
 }

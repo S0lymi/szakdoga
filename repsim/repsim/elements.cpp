@@ -327,6 +327,7 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 	type = 0;
 	purification = NULL;
 	targetfid = 0.98;
+	epratonce = 1;
 }
 
 Node::~Node()
@@ -360,7 +361,9 @@ int Node::CorrectAfterMeasure(QPair * pair, int result)
 	//signal that pair is ready to be measured
 	pair->mem[0]->ReadytoMeasure = true;
 	pair->mem[1]->ReadytoMeasure = true;
-
+	double fidelity = Vec4Calcstdfid(*pair->state);
+	pair->mem[0]->fid = fidelity;
+	pair->mem[1]->fid = fidelity;
 	//	cout << "rc mems: " << pair->mem[0] << " " << pair->mem[1] << endl;
 
 	return 0;
@@ -416,12 +419,8 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 		//*/
 		//freeing memories
 		delete m2->pair;
-		m2->ReadytoMeasure = false;
-		m1->ReadytoMeasure = false;
-		m1->pair = NULL;
-		m2->pair = NULL;
-		m1->state = 0;
-		m2->state = 0;
+		m1->reset();
+		m2->reset();
 
 	}
 	cout << endl << "Bellmeasure" << endl;
@@ -436,11 +435,11 @@ int Node::Updateformeasure(SimRoot * Sim)
 	//check memories ready for measure
 	for (int i = 0; i < memsize && m1 == NULL; i++)
 	{
-		if (memleft[i].ReadytoMeasure && memleft[i].state == 2) m1 = &memleft[i];
+		if (memleft[i].ReadytoMeasure && memleft[i].state == 3 && memleft[i].fid >= targetfid) m1 = &memleft[i];
 	}
 	for (int i = 0; i < memsize && m2 == NULL; i++)
 	{
-		if (memright[i].ReadytoMeasure && memright[i].state == 2) m2 = &memright[i];
+		if (memright[i].ReadytoMeasure && memright[i].state == 3 && memright[i].fid >= targetfid) m2 = &memright[i];
 	}
 
 	bool pairs_ok =false;
@@ -448,7 +447,7 @@ int Node::Updateformeasure(SimRoot * Sim)
 	{
 		if (m1->pair->mem[0] != NULL && m1->pair->mem[1] != NULL && m2->pair->mem[0] != NULL && m2->pair->mem[1] != NULL)
 		{
-			pairs_ok = (m1->pair->mem[0]->state == 2 && m1->pair->mem[1]->state == 2 && m2->pair->mem[0]->state == 2 && m2->pair->mem[1]->state == 2); // check the pairs' memory states
+			pairs_ok = (m1->pair->mem[0]->state >= 2 && m1->pair->mem[1]->state >= 2 && m2->pair->mem[0]->state >= 2 && m2->pair->mem[1]->state >= 2); // check the pairs' memory states
 		}
 	}
 
@@ -460,6 +459,42 @@ int Node::Updateformeasure(SimRoot * Sim)
 		item->name = "bm";
 		//schedule measure
 		Sim->Schedule(item);
+	}
+	//Schedule purification if memories are close to full, and there are pairs that can be purified
+	//checking left memories
+	int left_freemems=0;
+	int left_mems_to_purif=0;
+	for (int i = 0; i < memsize; i++)
+	{
+		if (memleft[i].pair == NULL) left_freemems = left_freemems + 1;
+		if (memleft[i].fid < targetfid && memleft[i].ReadytoMeasure && memleft[i].state == 3) left_mems_to_purif = left_mems_to_purif + 1;
+	}
+	//checking right memories
+	int right_freemems = 0;
+	int right_mems_to_purif = 0;
+	for (int i = 0; i < memsize; i++)
+	{
+		if (memright[i].pair == NULL) right_freemems = right_freemems + 1;
+		if (memright[i].fid < targetfid && memright[i].ReadytoMeasure && memright[i].state == 3) right_mems_to_purif = right_mems_to_purif + 1;
+	}
+
+
+	if(left_freemems < 2 && left_mems_to_purif>1) //check if leftside should purify
+	{ 	//Schedule purification
+		SimItem *purifl = new SimItem;
+		purifl->FuncToCall = bind(this->purification, memleft, memsize, targetfid);
+		purifl->extime = Sim->curtime;
+		purifl->name = "purleft";
+		Sim->Schedule(purifl);
+	}
+	if (right_freemems < 2 && right_mems_to_purif>1)
+	{
+		//Schedule purification
+		SimItem *purifr = new SimItem;
+		purifr->FuncToCall = bind(this->purification, memright, memsize, targetfid);
+		purifr->extime = Sim->curtime;
+		purifr->name = "purright";
+		Sim->Schedule(purifr);
 	}
 
 	cout << endl << "Updateformeasure" << endl;
@@ -496,7 +531,10 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				{
 					if (prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
 				}
-				else memleft[check].ReadytoMeasure = false;
+				else
+				{
+					memleft[check].ReadytoMeasure = false;
+				}
 				//check if both sides of the pair have arrived
 				if (pair->mem[0] != NULL && pair->mem[1] != NULL)
 				{
@@ -524,16 +562,12 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				{
 					if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
 					{
-						pair->mem[0]->pair = NULL;
-						pair->mem[0]->ReadytoMeasure = false;
-						pair->mem[0]->state = 0;
+						pair->mem[0]->reset();
 						pair->mem[0] = NULL;
 					}
 					if (pair->mem[1] != NULL)
 					{
-						pair->mem[1]->pair = NULL;
-						pair->mem[1]->ReadytoMeasure = false;
-						pair->mem[1]->state = 0;
+						pair->mem[1]->reset();
 						pair->mem[1] = NULL;
 					}
 					delete pair;
@@ -602,16 +636,12 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				{
 					if (pair->mem[0] != NULL) // correcting memories for other possibly received half of the pair
 					{
-						pair->mem[0]->pair = NULL;
-						pair->mem[0]->ReadytoMeasure = false;
-						pair->mem[0]->state = 0;
+						pair->mem[0]->reset();
 						pair->mem[0] = NULL;
 					}
 					if (pair->mem[1] != NULL)
 					{
-						pair->mem[1]->pair = NULL;
-						pair->mem[1]->ReadytoMeasure = false;
-						pair->mem[1]->state = 0;
+						pair->mem[1]->reset();
 						pair->mem[1] = NULL;
 					}
 					delete pair;
@@ -640,6 +670,40 @@ int Node::ReceiveFromChSuccess(SimRoot * Sim, QPair * pair, Node * nodeleft, Nod
 {
 	pair->mem[0]->state = 2;
 	pair->mem[1]->state = 2;
+
+
+	double fidelity = Vec4Calcstdfid(*pair->state);
+	pair->mem[0]->fid = fidelity;
+	pair->mem[1]->fid = fidelity;
+	//set memory states according to place in chain
+	if (nodeleft->type == 0) // check whether this node is the bottom -> has to start measure chain
+	{
+		if (nodeleft->prevNoderight->type == 1)
+		{
+			for (int i = 0; i < nodeleft->memsize; i++)//search for leftside memory of pair
+			{
+				if (pair == nodeleft->memright[i].pair) 
+				{
+					nodeleft->memright[i].state = 3;
+				}
+			}
+		}
+	}
+
+	if (noderight->type == 0) // check whether this node is the bottom -> has to start measure chain
+	{
+		if (noderight->prevNodeleft->type == 1)
+		{
+			for (int i = 0; i < noderight->memsize; i++)//search for leftside memory of pair
+			{
+				if (pair == noderight->memleft[i].pair)
+				{
+					noderight->memleft[i].state = 3;
+				}
+			}
+		}
+	}
+
 	//Update the nodes which hold the pair
 	SimItem * left = new SimItem;
 	left->FuncToCall = bind(&Node::Updateformeasure, nodeleft, Sim);
@@ -659,34 +723,54 @@ int Node::ReceiveFromChSuccess(SimRoot * Sim, QPair * pair, Node * nodeleft, Nod
 
 int Node::GenEPR(SimRoot * Sim)
 {
-	QPair * pair = epr->generatep();
-	//send left
-	SimItem * left = new SimItem;
-	left->FuncToCall = bind(&Channel::SendThrough, leftch, Sim, pair, 0);
-	left->extime = Sim->curtime;
-	left->name = "thrch";
-	Sim->Schedule(left);
-	// send right
-	SimItem * right = new SimItem;
-	right->FuncToCall = bind(&Channel::SendThrough, rightch, Sim, pair, 1);
-	right->extime = Sim->curtime;
-	right->name = "thrch";
-	Sim->Schedule(right);
-	//Schedule next generation
-	/*
-	SimItem * gen = new SimItem;
-	gen->FuncToCall = bind(&Node::GenEPR, this, Sim);
-	gen->extime = Sim->curtime + epr->rate;
-	gen->name = "eprgen";
-	Sim->Schedule(gen);
-	//*/
-	//Schedule conditional delayed deletion
-	/*SimItem * del = new SimItem;
-	del->FuncToCall = bind(CondDeletePair, pair);
-	del->extime = Sim->curtime + (leftch->length + rightch->length) * 2;
-	del->name = "delch";
-	Sim->Schedule(del);
-	//*/
+
+	SimItem * right;
+	SimItem * left;
+	QPair * pair;
+	SimItem * gen;
+	for (int i = 0; i < epratonce; i++)
+	{
+		pair = epr->generatep();
+		*pair->state = Cheapstatefid(epr->fidelity);
+		//send left
+		left = new SimItem;
+		left->FuncToCall = bind(&Channel::SendThrough, leftch, Sim, pair, 0);
+		left->extime = Sim->curtime;
+		left->name = "thrch";
+		Sim->Schedule(left);
+		// send right
+		right = new SimItem;
+		right->FuncToCall = bind(&Channel::SendThrough, rightch, Sim, pair, 1);
+		right->extime = Sim->curtime;
+		right->name = "thrch";
+		Sim->Schedule(right);
+		//Schedule next generation
+		/*
+		gen = new SimItem;
+		gen->FuncToCall = bind(&Node::GenEPR, this, Sim);
+		gen->extime = Sim->curtime + epr->rate;
+		gen->name = "eprgen";
+		Sim->Schedule(gen);
+		//*/
+		//Schedule conditional delayed deletion
+		/*SimItem * del = new SimItem;
+		del->FuncToCall = bind(CondDeletePair, pair);
+		del->extime = Sim->curtime + (leftch->length + rightch->length) * 2;
+		del->name = "delch";
+		Sim->Schedule(del);
+		//*/
+	}
+	return 0;
+}
+
+int Node::Purify(SimRoot * Sim)
+{
+	//call own purification method
+	//purification(this);
+
+	//Schedule Update
+	SimItem* update = new SimItem;
+
 	return 0;
 }
 
@@ -815,4 +899,162 @@ int DEJ2Purif(QPair * pair1, QPair * pair2)
 	delete pair2;
 
 	return 0;
+}
+
+int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
+{
+	//check if there's need for purification
+	int freemems = 0;
+	int mems_to_purif = 0;
+	for (int i = 0; i < memsize; i++)
+	{
+		if (mem[i].pair == NULL) freemems = freemems + 1;
+		if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3) mems_to_purif = mems_to_purif + 1;
+	}
+	if (freemems < 2 && mems_to_purif > 1)
+	{
+
+		QMem ** toPurif = new QMem*[memsize];
+		int j = 0;
+		for (int i = 0; i < memsize; i++) toPurif[i] = NULL;
+		//collect pairs to be purified 
+		for (int i = 0; i < memsize; i++)
+		{
+			if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3)
+			{
+				toPurif[j] = &mem[i];
+				j++;
+			}
+		}
+
+		//Purify while there are pairs to be purified
+		//find the smallest indexes
+		QMem *m1, *m2, *aux;
+		m1 = NULL;
+		m2 = NULL;
+		//find m1
+		for (int i = 0; i < memsize; i++)
+		{
+			if (toPurif[i] != NULL)
+			{
+				if (m1 == NULL)
+				{
+					m1 = toPurif[i];
+					toPurif[i] = NULL;
+				}
+				else if (m1->fid > toPurif[i]->fid) //found lower fid->swap
+				{
+					aux = m1;
+					m1 = toPurif[i];
+					toPurif[i] = aux;
+				}
+			}
+		}
+		//find m2
+		for (int i = 0; i < memsize; i++)
+		{
+			if (toPurif[i] != NULL)
+			{
+				if (m2 == NULL)
+				{
+					m2 = toPurif[i];
+					toPurif[i] = NULL;
+				}
+				else if (m2->fid > toPurif[i]->fid) //found lower fid->swap
+				{
+					aux = m2;
+					m2 = toPurif[i];
+					toPurif[i] = aux;
+				}
+			}
+		}
+		//purify until there's nothing left to purify
+		while (m1 != NULL && m2 != NULL)
+		{
+			int result = 0;
+			//purify
+			result = DEJPurif(m2->pair, m1->pair);
+
+			m1 = NULL;
+			//find m1 again
+			for (int i = 0; i < memsize; i++)
+			{
+				if (toPurif[i] != NULL)
+				{
+					if (m1 == NULL)
+					{
+						m1 = toPurif[i];
+						toPurif[i] = NULL;
+					}
+					else if (m1->fid > toPurif[i]->fid) //found lower fid->swap
+					{
+						aux = m1;
+						m1 = toPurif[i];
+						toPurif[i] = aux;
+					}
+				}
+			}
+			if (result == 1) // Purification succesfull -> put m2 back to toPurif(only if fid < target)
+			{
+				double fidelity = Vec4Calcstdfid(*m2->pair->state);
+				m2->pair->mem[0]->fid = fidelity; //nochecks!
+				m2->pair->mem[1]->fid = fidelity;
+				cout << "m2fid:  "<<m2->fid << endl;
+				if (m2->fid >= targetfid) m2 = NULL; // wont swap m2 back if its fid is high enough
+			}
+			else
+			{
+				m2 = NULL;
+			}
+			//find m2 again
+			for (int i = 0; i < memsize; i++)
+			{
+				if (toPurif[i] != NULL)
+				{
+					if (m2 == NULL)
+					{
+						m2 = toPurif[i];
+						toPurif[i] = NULL;
+					}
+					else if (m2->fid > toPurif[i]->fid) //found lower fid->swap
+					{
+						aux = m2;
+						m2 = toPurif[i];
+						toPurif[i] = aux;
+					}
+				}
+			}
+		}
+
+		cout << endl << "yesyesyesyes" << endl;
+		return 1;
+	}
+	else
+	{
+		cout << endl << "nononono" << endl;
+		return 0;
+	}
+}
+
+void FidSortMems(QMem ** mems, int size)
+{
+	QMem** newmem = new QMem*[size];
+	for (int i = 0; i < size; i++) newmem[i] = NULL;
+	if (mems[0] != NULL)
+	{
+		for (int j = 0; j < size; j++)//find the index with the smallest fidelty
+		{
+
+		}
+
+	}
+
+}
+
+double Vec4Calcstdfid(Vector4cd state)
+{
+	Vector4cd target;
+	target << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
+
+	return (state.adjoint()*(target*target.adjoint())*state).norm();
 }

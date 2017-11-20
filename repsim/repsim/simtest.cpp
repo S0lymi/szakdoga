@@ -255,6 +255,7 @@ int main()
 	Channel channels[16];
 	EPR std_epr;
 	std_epr.rate = 20;
+	std_epr.fidelity = 0.7;
 	for (int i = 0; i < 16; i++)
 	{
 		channels[i].from = &eprnodes[i / 2];
@@ -363,6 +364,7 @@ int main()
 	//delete p1;
 	//*/
 
+	/*
 	QPair * p1,* p2;
 	p1 = new QPair;
 	p2 = new QPair;
@@ -376,12 +378,12 @@ int main()
 	while (tova != 1)
 	{
 		QPair * auxpair = new QPair;
-		*auxpair->state = Cheapstatefid(0.7);
+		*auxpair->state = Cheapstatefid(0.6);
 		int result = DEJPurif(p1, auxpair);
 		if (result == 0)
 		{
 			p1 = new QPair;
-			*p1->state = Cheapstatefid(0.7);
+			*p1->state = Cheapstatefid(0.6);
 		}
 		cout << endl << "result: " << result << endl;
 		if (result == 1)
@@ -392,41 +394,79 @@ int main()
 
 	}
 	cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
+	//*/
 	//int result = DEJPurif(p1, p2);
 	//cout << endl << "result:  " << result << endl;
 	//if (result!=0) cout << endl << "p1: " << *p1->state << endl << "p1fid: " << Vec4Calcfid(*p1->state, target) << endl;
 	//DEJ2Purif(p1, p2);
 
+//test purif for 2 node 1 epr
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<unsigned int> dist(0, 20000000000);
-	std::srand(dist(gen));
+/*
+	eprnodes[0].epratonce = 4;
+	nodes[0].purification = GreedyBU_DEJPurif;
+	nodes[1].purification = GreedyBU_DEJPurif;
+	int a = 0;
+	while (a != 1)
+	{
+		eprnodes[0].GenEPR(&Sim);
+		while (Sim.nextItem != NULL)
+		{
+			Sim.printlisttimes();
+			Sim.ExecuteNext();
+		}
+		for (int i = 0; i < nodes[0].memsize; i++)
+		{
+			cout << "fid" << i << ":  " << nodes[0].memright[i].fid<<"    st"<<i<<":  "<< nodes[0].memright[i].state;
+			if (i % 2 == 1) cout << endl;
+		}
+		cin >> a;
+	}
+//*/
+//test purif for 3 node 2 epr
 
-	Vector4cd v1, v2;
-	v1.setRandom();
-	v1 = v1*(1 / sqrt(v1.cwiseAbs2().sum()));
-	cout << endl <<"asd  "<< v1.cwiseAbs2().sum() << endl;
-	v2 << 2, 3, 4, 5;
-	Vector4cd vt1, vt2,vt3,vt4;
-	vt1 << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
-	vt2 << 1 / sqrt(2), 0, 0, -1 / sqrt(2);
-	vt3 << 0, 1 / sqrt(2), 1 / sqrt(2), 0;
-	vt4 << 0, 1 / sqrt(2), -1 / sqrt(2), 0;
-	cout << endl << "v1: " << endl << v1 << endl;
-	cout << endl << Vec4Calcfid(v1, vt1) << endl << Vec4Calcfid(v1, vt2) << endl << Vec4Calcfid(v1, vt3) << endl << Vec4Calcfid(v1, vt4) << endl;
-	Matrix4cd toBell;
-	toBell << vt1.transpose(), vt2.transpose(), vt3.transpose(), vt4.transpose();
-	cout << endl << toBell << endl;
-	cout << endl << (toBell*v1).cwiseAbs2() << endl;
+///*
+	eprnodes[0].epratonce = 1;
+	eprnodes[1].epratonce = 1;
+	nodes[0].purification = GreedyBU_DEJPurif;
+	nodes[1].purification = GreedyBU_DEJPurif;
+	nodes[2].purification = GreedyBU_DEJPurif;
+	int a = 0;
+	bool sch = false;
+	while (a != 1)
+	{
+		eprnodes[0].GenEPR(&Sim);
+		//eprnodes[1].GenEPR(&Sim);
+		while (Sim.nextItem != NULL)
+		{
+			Sim.printlisttimes();
+			Sim.ExecuteNext();
+		}
+		cout << endl << "left: " << endl;
+		for (int i = 0; i < nodes[0].memsize; i++)
+		{
+			cout << "fid" << i << ":  " << nodes[1].memleft[i].fid << "    st" << i << ":  " << nodes[1].memleft[i].state << " " << nodes[1].memleft[i].ReadytoMeasure << "   ";
+			if (i % 2 == 1) cout << endl;
+		}
+		cout << endl << "right: " << endl;
+		for (int i = 0; i < nodes[0].memsize; i++)
+		{
+			cout << "fid" << i << ":  " << nodes[1].memright[i].fid << "    st" << i << ":  " << nodes[1].memright[i].state << " " << nodes[1].memright[i].ReadytoMeasure << "   ";
+			if (i % 2 == 1) cout << endl;
+		}
+		cout << endl << nodes[1].prevNoderight->type << endl;
+		cin >> a;
+	}
+	//*/
 
-
-
-
+//generate eprs from 2 eprs between 3 nodes once at a time
 	/*
+
+
 	Sim.printlisttimes();
 	int a=0;
-
+	eprnodes[0].epratonce = 4;
+	eprnodes[1].epratonce = 4;
 	while(a!=1)
 	{
 		eprnodes[0].GenEPR(&Sim);

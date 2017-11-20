@@ -78,9 +78,9 @@ public:
 	Channel* leftch;
 	Channel* rightch;
 	int type;
-	function<int()> purification;
+	function<int(QMem*,int,double)> purification;
 	double targetfid;
-
+	int epratonce;
 	//konst
 	Node(int memsizek=10,Node* prevnl=NULL,double prevdl=0, Node* prevnr = NULL, double prevdr = 0,Node* nextn=NULL,double nextd=0,EPR *eprk=NULL,Channel *leftchk=NULL, Channel * rightchk=NULL);
 	//dest
@@ -98,7 +98,7 @@ public:
 
 	int GenEPR(SimRoot * Sim);
 
-
+	int Purify(SimRoot * Sim);
 };
 
 
@@ -117,3 +117,9 @@ double Vec4Calcfid(Vector4cd state, Vector4cd target);
 int DEJPurif(QPair * pair1, QPair * pair2);
 
 int DEJ2Purif(QPair * pair1, QPair * pair2);
+
+int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid);
+
+void FidSortMems(QMem ** mems, int size);
+
+double Vec4Calcstdfid(Vector4cd state);
