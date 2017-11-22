@@ -296,12 +296,12 @@ int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
 		item->extime = Sim->curtime + delay;
 		item->name = "rcvch";
 		Sim->Schedule(item);
-		cout << " chsucc " << endl;
+		//if (Sim->diagnostics != 0) cout << " chsucc " << endl;
 	}
 	else //fail -> has to delete pair
 	{
 		pair->simstate[index] = 1;
-		cout << " chfail " << endl;
+		//if (Sim->diagnostics != 0) cout << " chfail " << endl;
 	}
 
 	return 0;
@@ -334,6 +334,18 @@ Node::~Node()
 {
 	delete[] memleft;
 	delete[] memright;
+}
+
+int Node::ChangeMemsize(int newmemsize)
+{
+	if (memleft == NULL) return 0;
+	if (memright == NULL) return 0;
+	delete[] memleft;
+	delete[] memright;
+	memsize = newmemsize;
+	memleft = new QMem[memsize];
+	memright = new QMem[memsize];
+	return 1;
 }
 
 int Node::CorrectAfterMeasure(QPair * pair, int result)
@@ -371,7 +383,7 @@ int Node::CorrectAfterMeasure(QPair * pair, int result)
 
 int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 {
-	if(m1->pair!=NULL && m2->pair!=NULL)
+	if (m1->pair != NULL && m2->pair != NULL)
 	{
 		int res;
 		if (m1->pairindex != 1)
@@ -385,6 +397,22 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 		m1->pair->agesync();
 		m2->pair->agesync();
 		res = measure.bmeasure(m1->pair, m2->pair);
+		//set states for next measure in line
+		if (nextNode->prevNoderight != NULL)
+		{
+			if (nextNode->prevNoderight == this) //leftside is next
+			{
+				m1->pair->mem[!m1->pairindex]->state = 3;
+			}
+		}
+
+		if (nextNode->prevNodeleft != NULL)
+		{
+			if (nextNode->prevNodeleft == this) //rightside is next
+			{
+				m2->pair->mem[!m2->pairindex]->state = 3;
+			}
+		}
 		//after measure set
 		if (m2->pair->age[0] > m1->pair->age[0])
 		{
@@ -393,8 +421,8 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 		m2->pair->mem[1]->pair = m1->pair;
 		m1->pair->mem[1] = m2->pair->mem[1];
 		m1->pair->agesync();
-		//m1->pair->mem[0]->ReadytoMeasure = true;
-		//m1->pair->mem[1]->ReadytoMeasure = true;
+		m1->pair->mem[0]->ReadytoMeasure = false; //Not ready until result corrected
+		m1->pair->mem[1]->ReadytoMeasure = false;
 		//Schedule things
 		// /*
 		//result correction
@@ -423,7 +451,7 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 		m2->reset();
 
 	}
-	cout << endl << "Bellmeasure" << endl;
+	//if (Sim->diagnostics != 0) cout << endl << "Bellmeasure" << endl;
 	return 0;
 }
 
@@ -463,21 +491,47 @@ int Node::Updateformeasure(SimRoot * Sim)
 	//Schedule purification if memories are close to full, and there are pairs that can be purified
 	//checking left memories
 	int left_freemems=0;
+	int left_other_freemems=memsize;
 	int left_mems_to_purif=0;
 	for (int i = 0; i < memsize; i++)
 	{
 		if (memleft[i].pair == NULL) left_freemems = left_freemems + 1;
 		if (memleft[i].fid < targetfid && memleft[i].ReadytoMeasure && memleft[i].state == 3) left_mems_to_purif = left_mems_to_purif + 1;
 	}
+	if (prevNodeleft != NULL) // check if its the bottom, then get available memories from the neigbouring node too
+	{
+		if (prevNodeleft->type == 1)
+		{
+			left_other_freemems = 0;
+			for (int i = 0; i < prevNodeleft->prevNodeleft->memsize; i++)
+			{
+				if (prevNodeleft->prevNodeleft->memright[i].pair == NULL) left_other_freemems = left_other_freemems + 1;
+			}
+		}
+	}
+	if (left_other_freemems < left_freemems) left_freemems = left_other_freemems;
+
 	//checking right memories
 	int right_freemems = 0;
 	int right_mems_to_purif = 0;
+	int right_other_freemems=memsize;
 	for (int i = 0; i < memsize; i++)
 	{
 		if (memright[i].pair == NULL) right_freemems = right_freemems + 1;
 		if (memright[i].fid < targetfid && memright[i].ReadytoMeasure && memright[i].state == 3) right_mems_to_purif = right_mems_to_purif + 1;
 	}
-
+	if (prevNoderight != NULL) // check if its the bottom, then get available memories from the neigbouring node too
+	{
+		if (prevNoderight->type == 1)
+		{
+			right_other_freemems = 0;
+			for (int i = 0; i < prevNoderight->prevNoderight->memsize; i++)
+			{
+				if (prevNoderight->prevNoderight->memleft[i].pair == NULL) right_other_freemems = right_other_freemems + 1;
+			}
+		}
+	}
+	if (right_other_freemems < right_freemems) right_freemems = right_other_freemems;
 
 	if(left_freemems < 2 && left_mems_to_purif>1) //check if leftside should purify
 	{ 	//Schedule purification
@@ -486,6 +540,12 @@ int Node::Updateformeasure(SimRoot * Sim)
 		purifl->extime = Sim->curtime;
 		purifl->name = "purleft";
 		Sim->Schedule(purifl);
+		//check again after purification
+		SimItem * check = new SimItem;
+		check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+		check->extime = Sim->curtime;
+		check->name = "updpurt";
+		Sim->Schedule(check);
 	}
 	if (right_freemems < 2 && right_mems_to_purif>1)
 	{
@@ -495,20 +555,27 @@ int Node::Updateformeasure(SimRoot * Sim)
 		purifr->extime = Sim->curtime;
 		purifr->name = "purright";
 		Sim->Schedule(purifr);
+		//check again after purification
+		SimItem * check = new SimItem;
+		check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+		check->extime = Sim->curtime;
+		check->name = "updpurt";
+		Sim->Schedule(check);
 	}
 
-	cout << endl << "Updateformeasure" << endl;
+	if (Sim->diagnostics != 0) cout << endl << "Updateformeasure" << endl;
+	if (Sim->diagnostics != 0) cout << "leftfree: " << left_freemems << "  rightfree:  " << right_freemems << endl;
 	return 0;
 }
 
 int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 {
-	cout << endl << "Receive: " << pair << " sim: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+	if (Sim->diagnostics != 0) cout << endl << "Receive: " << pair << " sim: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 	if (pair->simstate[0] != 1 && pair->simstate[1] != 1)
 	{
 		if (from->from->prevNoderight == this) // receive to leftside memories 
 		{
-			cout << "left";
+			if (Sim->diagnostics != 0) cout << "left";
 			int check = 0;
 			bool found = false;
 			for (int i = 0; i < memsize && !found; i++)
@@ -521,10 +588,11 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 			}
 			if (found) // there's space for the qubit
 			{
-				cout << "0";
+				if (Sim->diagnostics != 0) cout << "0";
 				memleft[check].pair = pair;
 				memleft[check].pairindex = index;
 				memleft[check].state = 1;
+				memleft[check].rcvtime = Sim->curtime;
 				pair->mem[index] = &memleft[check];
 				pair->simstate[index] = 3;
 				if (type == 0) // check whether this node is the bottom -> has to start measure chain
@@ -538,7 +606,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				//check if both sides of the pair have arrived
 				if (pair->mem[0] != NULL && pair->mem[1] != NULL)
 				{
-					cout << "2" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
+					if (Sim->diagnostics != 0) cout << "2" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
 					if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
 					{
 						Node * leftnode;
@@ -552,7 +620,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						Sim->Schedule(item);
 					}
 				}
-				cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+				if (Sim->diagnostics != 0) cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 			}
 			else // delete pair if we cant store it
@@ -571,13 +639,13 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						pair->mem[1] = NULL;
 					}
 					delete pair;
-					cout << "pairdel2" << endl;
+					if (Sim->diagnostics != 0) cout << "pairdel2" << endl;
 				}
 				//other half not arrived yet->mark for delete
 				else
 				{
 					pair->simstate[index] = 1;
-					cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+					if (Sim->diagnostics != 0) cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 				}
 			}
@@ -585,7 +653,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 		}
 		if (from->from->prevNodeleft == this) // receive to rightside memories
 		{
-			cout << "right";
+			if (Sim->diagnostics != 0) cout << "right";
 			int check = 0;
 			bool found = false;
 			for (int i = 0; i < memsize && !found; i++)
@@ -598,10 +666,11 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 			}
 			if (found) // there's space for the qubit
 			{
-				cout << "1";
+				if (Sim->diagnostics != 0) cout << "1";
 				memright[check].pair = pair;
 				memright[check].pairindex = index;
 				memright[check].state = 1;
+				memright[check].rcvtime = Sim->curtime;
 				pair->mem[index] = &memright[check];
 				pair->simstate[index] = 3;
 				if (type == 0) // check whether this node is the bottom -> has to start measure chain
@@ -612,7 +681,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				//check if both sides of the pair have arrived
 				if (pair->mem[0] != NULL && pair->mem[1] != NULL)
 				{
-					cout << "3" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
+					if (Sim->diagnostics != 0) cout << "3" << "  " << pair->mem[0] << "  " << pair->mem[1] << endl;
 					if (pair->mem[0]->state == 1 && pair->mem[1]->state == 1)
 					{
 						Node * rightnode;
@@ -626,7 +695,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						Sim->Schedule(item);
 					}
 				}
-				cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+				if (Sim->diagnostics != 0) cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 			}
 			else // pair has to be deleted
@@ -645,13 +714,13 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 						pair->mem[1] = NULL;
 					}
 					delete pair;
-					cout << "pairdel2" << endl;
+					if (Sim->diagnostics != 0) cout << "pairdel2" << endl;
 				}
 				//other half not arrived yet->mark for delete
 				else
 				{
 					pair->simstate[index] = 1;
-					cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
+					if (Sim->diagnostics != 0) cout << endl << "Simafter: " << pair->simstate[0] << "  " << pair->simstate[1] << endl;
 
 				}
 			}
@@ -661,7 +730,7 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 	else
 	{
 		delete pair;
-		cout << "delpair" << endl;
+		if(Sim->diagnostics != 0) cout << "delpair" << endl;
 	}
 	return 0;
 }
@@ -745,12 +814,7 @@ int Node::GenEPR(SimRoot * Sim)
 		right->name = "thrch";
 		Sim->Schedule(right);
 		//Schedule next generation
-		/*
-		gen = new SimItem;
-		gen->FuncToCall = bind(&Node::GenEPR, this, Sim);
-		gen->extime = Sim->curtime + epr->rate;
-		gen->name = "eprgen";
-		Sim->Schedule(gen);
+		///*
 		//*/
 		//Schedule conditional delayed deletion
 		/*SimItem * del = new SimItem;
@@ -760,6 +824,12 @@ int Node::GenEPR(SimRoot * Sim)
 		Sim->Schedule(del);
 		//*/
 	}
+	//generate again
+	gen = new SimItem;
+	gen->FuncToCall = bind(&Node::GenEPR, this, Sim);
+	gen->extime = Sim->curtime + epr->rate;
+	gen->name = "eprgen";
+	Sim->Schedule(gen);
 	return 0;
 }
 
@@ -773,6 +843,25 @@ int Node::Purify(SimRoot * Sim)
 
 	return 0;
 }
+
+int Node::printmemstates()
+{
+	cout << endl << "leftmems: " << endl;
+	for (int i = 0; i < memsize; i++)
+	{
+		cout << " fid: " << memleft[i].fid << " state: " << memleft[i].state << " " << memleft[i].ReadytoMeasure << "    ";
+		if (i % 2 == 1) cout << endl;
+	}
+	cout << endl << "rightmems: " << endl;
+	for (int i = 0; i < memsize; i++)
+	{
+		cout << " fid: " << memright[i].fid << " state: " << memright[i].state << " " << memright[i].ReadytoMeasure << "    ";
+		if (i % 2 == 1) cout << endl;
+	}
+	return 0;
+}
+
+//Other stuff
 
 Vector4cd Cheapstatefid(double fid)
 {
@@ -797,7 +886,6 @@ double Vec4Calcfid(Vector4cd state, Vector4cd target)
 	return (state.adjoint()*(target*target.adjoint())*state).norm();
 }
 
-//
 int DEJPurif(QPair * pair1, QPair * pair2)
 {
 	Matrix2cd A, B;
@@ -894,7 +982,6 @@ int DEJ2Purif(QPair * pair1, QPair * pair2)
 
 	double N = (cp(0) + cp(1))*(tp(0) + tp(1)) + (cp(2) + cp(3))*(tp(2) + tp(3));
 	np(0) = (cp(0)*tp(0) + cp(1)*tp(1)) / N;
-	//cout << endl << "fid:  " << np(0) << endl;
 	*pair1->state = Cheapstatefid(np(0));
 	delete pair2;
 
@@ -911,7 +998,7 @@ int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
 		if (mem[i].pair == NULL) freemems = freemems + 1;
 		if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3) mems_to_purif = mems_to_purif + 1;
 	}
-	if (freemems < 2 && mems_to_purif > 1)
+	if (mems_to_purif > 1)
 	{
 
 		QMem ** toPurif = new QMem*[memsize];
@@ -999,7 +1086,7 @@ int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
 				double fidelity = Vec4Calcstdfid(*m2->pair->state);
 				m2->pair->mem[0]->fid = fidelity; //nochecks!
 				m2->pair->mem[1]->fid = fidelity;
-				cout << "m2fid:  "<<m2->fid << endl;
+				// 	cout << "m2fid:  "<<m2->fid << endl;
 				if (m2->fid >= targetfid) m2 = NULL; // wont swap m2 back if its fid is high enough
 			}
 			else
@@ -1026,12 +1113,12 @@ int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
 			}
 		}
 
-		cout << endl << "yesyesyesyes" << endl;
+		// cout << endl << "yesyesyesyes" << endl;
 		return 1;
 	}
 	else
 	{
-		cout << endl << "nononono" << endl;
+		//cout << endl << "nononono" << endl;
 		return 0;
 	}
 }

@@ -39,6 +39,7 @@ public:
 	bool ReadytoMeasure;
 	double fid;
 	int state;
+	double rcvtime;
 
 
 	//konst

@@ -23,6 +23,7 @@ class SimRoot
 public:
 	double curtime;
 	SimItem * nextItem;
+	int diagnostics;
 
 	//konst
 	SimRoot();

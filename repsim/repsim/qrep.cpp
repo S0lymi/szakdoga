@@ -109,6 +109,7 @@ QMem::QMem(QPair * pairk, int pairindexk, double maxtimek, bool rdy, double fidk
 	ReadytoMeasure = rdy;
 	fid = fidk;
 	state = statek;
+	rcvtime = 0;
 
 }
 
@@ -127,4 +128,5 @@ void QMem::reset()
 	ReadytoMeasure = false;
 	state = 0;
 	fid = 0;
+	rcvtime = 0;
 }

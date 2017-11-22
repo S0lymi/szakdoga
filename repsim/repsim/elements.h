@@ -86,6 +86,8 @@ public:
 	//dest
 	~Node();
 	//other
+	int ChangeMemsize(int newmemsize);
+
 	int CorrectAfterMeasure(QPair * pair, int result);// local operation to get the desired Bell state after measure
 
 	int Bellmeasure(SimRoot * Sim, QMem *m1, QMem* m2); // does the Bell-measure
@@ -99,6 +101,8 @@ public:
 	int GenEPR(SimRoot * Sim);
 
 	int Purify(SimRoot * Sim);
+
+	int printmemstates();
 };
 
 

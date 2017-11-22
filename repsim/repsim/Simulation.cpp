@@ -17,11 +17,13 @@ SimRoot::SimRoot()
 {
 	curtime = 0;
 	nextItem = NULL;
+	diagnostics = 0;
 }
 
 SimRoot::~SimRoot()
 {
 	cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+	int count = 0;
 	while (nextItem != NULL)
 	{
 		SimItem * nextnext=nextItem;
@@ -38,9 +40,11 @@ SimRoot::~SimRoot()
 			nextItem = NULL;
 		}
 		cout << "bbb" << endl;
+		count++;
 		delete nextnext;
 	}
-	cout << "ccc" << endl;
+	cout << "delcount: "<< count << endl;
+	cout << "cccccccCCCCCCCCccccccccc" << endl;
 }
 
 void SimRoot::Schedule(SimItem * item)
@@ -48,8 +52,8 @@ void SimRoot::Schedule(SimItem * item)
 	if (item != NULL)
 	{
 
-		cout << endl << "item:" << item << endl;
-		cout << "itemex:" << item->extime << endl;
+		//cout << endl << "item:" << item << endl;
+		//cout << "itemex:" << item->extime << endl;
 		if (nextItem != NULL) //list is not empty
 		{
 			if (item->extime < nextItem->extime) // item is to be inserted to the front of the list
@@ -117,7 +121,7 @@ int SimRoot::ExecuteNext()
 		cout << "curtime:" << curtime << endl;
 		return 1;
 	}
-	cout << "curtime:" << curtime << endl;
+	//cout << "curtime:" << curtime << endl;
 	return 0;
 }
 
