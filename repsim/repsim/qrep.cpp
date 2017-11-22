@@ -1,5 +1,12 @@
 #include "qrep.h"
 
+int pairsinmem;
+int memsinmem;
+int itemsinmem;
+int measuresinmem;
+int nodesinmem;
+int eprsinmem;
+int channelsinmem;
 //QPair
 
 QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2, int simstate1, int simstate2)
@@ -26,10 +33,12 @@ QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2, int simsta
 	mem[1] = mem2;
 	simstate[0] = simstate1;
 	simstate[1] = simstate2;
+	pairsinmem++;
 }
 
 QPair::~QPair()
 {
+	pairsinmem--;
 	if (state != NULL)
 	{
 		delete state;
@@ -110,11 +119,24 @@ QMem::QMem(QPair * pairk, int pairindexk, double maxtimek, bool rdy, double fidk
 	fid = fidk;
 	state = statek;
 	rcvtime = 0;
-
+	memsinmem++;
 }
 
 QMem::~QMem()
 {
+	if (pair != NULL)
+	{
+		if (pair->mem[0] != this && pair->mem[0] != NULL)
+		{
+			pair->mem[0]->reset();
+		}
+		if (pair->mem[1] != this && pair->mem[1] != NULL)
+		{
+			pair->mem[1]->reset();
+		}
+		delete pair;
+	}
+	memsinmem--;
 }
 
 void QMem::print()

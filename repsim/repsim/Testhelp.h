@@ -27,6 +27,7 @@ public:
 	double chalength;
 	double targetfid;
 	function<int(QMem*, int, double)> PurifMethod;
+	string title;
 
 	// konst
 	Pow2Sim();
@@ -38,4 +39,6 @@ public:
 	int AvgSimpleSim(int targetpairs, int times, string filename);
 
 	int AvgSim(int targetpairs, double * avgtime, double * avgmemtime);
+	
+	int AvgFidSweep(int targetpairs, double from, double to, double step, string filename);
 };

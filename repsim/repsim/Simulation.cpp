@@ -7,10 +7,12 @@ SimItem::SimItem()
 	prevItem = NULL;
 	FuncToCall = NULL;
 	name = " ";
+	itemsinmem++;
 }
 
 SimItem::~SimItem()
 {
+	itemsinmem--;
 }
 
 SimRoot::SimRoot()
@@ -22,7 +24,7 @@ SimRoot::SimRoot()
 
 SimRoot::~SimRoot()
 {
-	cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+	//cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
 	int count = 0;
 	while (nextItem != NULL)
 	{
@@ -39,12 +41,12 @@ SimRoot::~SimRoot()
 		{
 			nextItem = NULL;
 		}
-		cout << "bbb" << endl;
+		//cout << "bbb" << endl;
 		count++;
 		delete nextnext;
 	}
-	cout << "delcount: "<< count << endl;
-	cout << "cccccccCCCCCCCCccccccccc" << endl;
+	//cout << "delcount: "<< count << endl;
+	//cout << "cccccccCCCCCCCCccccccccc" << endl;
 }
 
 void SimRoot::Schedule(SimItem * item)

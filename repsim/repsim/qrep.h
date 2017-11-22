@@ -6,6 +6,14 @@
 using namespace Eigen;
 using namespace std;
 
+extern int pairsinmem;
+extern int memsinmem;
+extern int itemsinmem;
+extern int measuresinmem;
+extern int nodesinmem;
+extern int eprsinmem;
+extern int channelsinmem;
+
 class QMem;
 
 class QPair
@@ -51,3 +59,4 @@ public:
 	void reset();
 
 };
+

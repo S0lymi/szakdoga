@@ -318,10 +318,12 @@ int Pow2Sim::AvgSim(int targetpairs, double * avgtime, double * avgmemtime)
 				nodes[eprnumber].memleft[i].pair->mem[!nodes[eprnumber].memleft[i].pairindex]->reset();
 				delete nodes[eprnumber].memleft[i].pair;
 				nodes[eprnumber].memleft[i].reset();
-				cout << endl << "donepairs: " << donepairs << endl;
+				cout << endl << "donepairs: " << donepairs << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+					<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
+				
 				//change title
 				ostringstream scim;
-				scim << "repsim " << "AvgSim: "<< (int) (donepairs*100)/targetpairs << "%";
+				scim <<title<<" AvgSim: "<< (int) (donepairs*100)/targetpairs << "%";
 				string str;
 				str = scim.str();
 				wstring wstr;
@@ -340,6 +342,39 @@ int Pow2Sim::AvgSim(int targetpairs, double * avgtime, double * avgmemtime)
 
 	return 0;
 
+	return 0;
+}
+
+int Pow2Sim::AvgFidSweep(int targetpairs, double from, double to, double step, string filename)
+{
+	//reset file
+	ofstream stats;
+	stats.open(filename, ios::out | ios::trunc);
+	stats.close();
+	//do the simulations
+	for (double curfid = from; curfid <= to; curfid = curfid + step)
+	{
+		//set title
+		int percent = (int)(((curfid - from) * 100) / (to - from));
+		ostringstream stit;
+		stit << "repsim: " << percent << "% ";
+		title = stit.str();
+		//do simulation for given fidelity
+		double avgtime = 0;
+		double avgmemtime = 0;
+		std_epr->fidelity = curfid;
+		this->AvgSim(targetpairs, &avgtime, &avgmemtime);
+		// write results
+		stats.open(filename, ios::out | ios::app);
+		stats << curfid << " " << avgtime << " " << avgmemtime<<endl;
+		stats.close();
+	}
+	ostringstream scim;
+	scim << "repsim: Done!";
+	string str = scim.str();
+	wstring wstr;
+	wstr.assign(str.begin(), str.end());
+	SetConsoleTitle(wstr.c_str());
 	return 0;
 }
 

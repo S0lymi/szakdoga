@@ -17,20 +17,28 @@ int main()
 	Sim.targetfid = 0.98;
 	Sim.std_epr->fidelity = 0.7;
 	Sim.std_epr->rate = 20;
-
-	double avgtime = 0;
-	double avgmemtime = 0;
+	pairsinmem = 0;
+	 memsinmem = 0;
+	 itemsinmem = 0;
+	 measuresinmem = 0;
+	 nodesinmem = 0;
+	 eprsinmem = 0;
+	 channelsinmem;
+	//double avgtime = 0;
+	//double avgmemtime = 0;
 	//measure execution time
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	Sim.AvgSim(2000, &avgtime, &avgmemtime);
+	Sim.AvgFidSweep(200, 0.65, 1, 0.05, "fidsweep.m");
 	chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
 
 	double duration = chrono::duration_cast<chrono::seconds>(t2 - t1).count();
 
 	cout <<"execution time:"<< duration<<" s"<<endl;
 
-	cout << endl << "avgtime: " << avgtime << "     avgmemtime: " << avgmemtime << endl;
+	//cout << endl << "avgtime: " << avgtime << "     avgmemtime: " << avgmemtime << endl;
 	cout << '\a';
+	cout << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+		<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
 	/*
 	Node nodes[9];
 	Node eprnodes[8];

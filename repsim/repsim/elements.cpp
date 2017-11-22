@@ -4,6 +4,8 @@
 //EPR
 EPR::EPR(Vector4cd * statek, double fidelityk, double ratek)
 {
+	eprsinmem++;
+
 	state = new Vector4cd;
 	rate = ratek;
 	fidelity = fidelityk;
@@ -19,6 +21,8 @@ EPR::EPR(Vector4cd * statek, double fidelityk, double ratek)
 
 EPR::~EPR()
 {
+	eprsinmem--;
+
 	delete state;
 }
 
@@ -43,6 +47,7 @@ QPair * EPR::generatep()
 
 Pair2Measure::Pair2Measure(Matrix<complex<double>, 16, 16>* trmat, Matrix<complex<double>, 16, 16>* auxtrmat)
 {
+	measuresinmem++;
 	auxtransmat = new Matrix<complex<double>, 16, 16>;
 	transmat = new Matrix<complex<double>, 16, 16>;
 
@@ -67,6 +72,7 @@ Pair2Measure::Pair2Measure(Matrix<complex<double>, 16, 16>* trmat, Matrix<comple
 
 Pair2Measure::~Pair2Measure()
 {
+	measuresinmem--;
 	delete transmat;
 	delete auxtransmat;
 }
@@ -252,6 +258,9 @@ int CondDeletePair(QPair * pair)
 
 Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok, int modek)
 {
+	channelsinmem++;
+
+
 	to = tok;
 	from = fromk;
 	length = lengthk;
@@ -261,6 +270,7 @@ Channel::Channel(double lengthk, double alengthk, Node * fromk,Node* tok, int mo
 
 Channel::~Channel()
 {
+	channelsinmem--;
 }
 
 bool Channel::through(QPair * pair, int pairindex)
@@ -311,6 +321,8 @@ int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
 
 Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prevdr, Node* nextn, double nextd, EPR *eprk, Channel *leftchk, Channel * rightchk)
 {
+	nodesinmem++;
+
 	memleft = new QMem[memsizek];
 	memright = new QMem[memsizek];
 	memsize = memsizek;
@@ -332,6 +344,8 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 
 Node::~Node()
 {
+	nodesinmem--;
+
 	delete[] memleft;
 	delete[] memright;
 }
