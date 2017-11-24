@@ -312,6 +312,10 @@ int Channel::SendThrough(SimRoot * Sim, QPair * pair, int index)
 	{
 		pair->simstate[index] = 1;
 		//if (Sim->diagnostics != 0) cout << " chfail " << endl;
+		if (pair->simstate[0] == 1 && pair->simstate[1] == 1) // both channels failed( no rcvch to delete pair-> has to delete)
+		{
+			delete pair;
+		}
 	}
 
 	return 0;
@@ -326,6 +330,14 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 	memleft = new QMem[memsizek];
 	memright = new QMem[memsizek];
 	memsize = memsizek;
+	for (int i = 0; i < memsize; i++) 
+	{
+		memleft[i].innode = this;
+	}
+	for (int i = 0; i < memsize; i++)
+	{
+		memright[i].innode = this;
+	}
 	measure.SetBellMeasure();
 	prevNodeleft = prevnl;
 	prevdistleft = prevdl;
@@ -340,6 +352,10 @@ Node::Node(int memsizek, Node* prevnl , double prevdl, Node* prevnr, double prev
 	purification = NULL;
 	targetfid = 0.98;
 	epratonce = 1;
+	physNodeleft = NULL;
+	physNoderight = NULL;
+	physdistleft = 0;
+	physdistright = 0;
 }
 
 Node::~Node()
@@ -359,6 +375,14 @@ int Node::ChangeMemsize(int newmemsize)
 	memsize = newmemsize;
 	memleft = new QMem[memsize];
 	memright = new QMem[memsize];
+	for (int i = 0; i < memsize; i++)
+	{
+		memleft[i].innode = this;
+	}
+	for (int i = 0; i < memsize; i++)
+	{
+		memright[i].innode = this;
+	}
 	return 1;
 }
 
@@ -376,11 +400,11 @@ int Node::CorrectAfterMeasure(QPair * pair, int result)
 	{
 		*pair->state = Kronecker(z1, i1) * (*pair->state);
 	}
-	else if (result == 2) // P gate
+	else if (result == 2) // X gate
 	{
 		*pair->state = Kronecker(p1, i1) * (*pair->state);
 	}
-	else if (result == 3) // PZ gate
+	else if (result == 3) // ZX gate
 	{
 		*pair->state = Kronecker(z1, i1)* Kronecker(p1, i1) * (*pair->state);
 	}
@@ -477,11 +501,11 @@ int Node::Updateformeasure(SimRoot * Sim)
 	//check memories ready for measure
 	for (int i = 0; i < memsize && m1 == NULL; i++)
 	{
-		if (memleft[i].ReadytoMeasure && memleft[i].state == 3 && memleft[i].fid >= targetfid) m1 = &memleft[i];
+		if (memleft[i].ReadytoMeasure && memleft[i].state == 3 && memleft[i].fid >= targetfid && !memleft[i].inpurif) m1 = &memleft[i];
 	}
 	for (int i = 0; i < memsize && m2 == NULL; i++)
 	{
-		if (memright[i].ReadytoMeasure && memright[i].state == 3 && memright[i].fid >= targetfid) m2 = &memright[i];
+		if (memright[i].ReadytoMeasure && memright[i].state == 3 && memright[i].fid >= targetfid && !memright[i].inpurif) m2 = &memright[i];
 	}
 
 	bool pairs_ok =false;
@@ -547,34 +571,76 @@ int Node::Updateformeasure(SimRoot * Sim)
 	}
 	if (right_other_freemems < right_freemems) right_freemems = right_other_freemems;
 
-	if(left_freemems < 2 && left_mems_to_purif>1) //check if leftside should purify
+	if(left_freemems < 2 && left_mems_to_purif>1 && Checkforpurif(memleft,memsize,targetfid)) //check if leftside should purify
 	{ 	//Schedule purification
-		SimItem *purifl = new SimItem;
-		purifl->FuncToCall = bind(this->purification, memleft, memsize, targetfid);
-		purifl->extime = Sim->curtime;
-		purifl->name = "purleft";
-		Sim->Schedule(purifl);
-		//check again after purification
-		SimItem * check = new SimItem;
-		check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
-		check->extime = Sim->curtime;
-		check->name = "updpurt";
-		Sim->Schedule(check);
+		if (withpurifpp == 1)
+		{
+			QPair * purpair=NULL;
+			purpair=ReserveMemsforPurif(memleft, memsize);
+			double delay = GetDistofNodes(purpair->mem[0]->innode, purpair->mem[1]->innode) *5;
+			SimItem *purifl = new SimItem;
+			purifl->FuncToCall = bind(this->purification, Sim, memleft, memsize, targetfid);
+			purifl->extime = Sim->curtime+delay;
+			purifl->name = "purleft";
+			Sim->Schedule(purifl);
+			//check again after purification
+			SimItem * check = new SimItem;
+			check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+			check->extime = Sim->curtime+delay;
+			check->name = "updpurt";
+			Sim->Schedule(check);
+		}
+		else
+		{
+			SimItem *purifl = new SimItem;
+			purifl->FuncToCall = bind(this->purification, Sim, memleft, memsize, targetfid);
+			purifl->extime = Sim->curtime;
+			purifl->name = "purleft";
+			Sim->Schedule(purifl);
+			//check again after purification
+			SimItem * check = new SimItem;
+			check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+			check->extime = Sim->curtime;
+			check->name = "updpurt";
+			Sim->Schedule(check);
+		}
+		
 	}
-	if (right_freemems < 2 && right_mems_to_purif>1)
+	if (right_freemems < 2 && right_mems_to_purif>1 && Checkforpurif(memright, memsize, targetfid)) // check if rightside should purify
 	{
-		//Schedule purification
-		SimItem *purifr = new SimItem;
-		purifr->FuncToCall = bind(this->purification, memright, memsize, targetfid);
-		purifr->extime = Sim->curtime;
-		purifr->name = "purright";
-		Sim->Schedule(purifr);
-		//check again after purification
-		SimItem * check = new SimItem;
-		check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
-		check->extime = Sim->curtime;
-		check->name = "updpurt";
-		Sim->Schedule(check);
+		if (withpurifpp == 1)
+		{
+			QPair * purpair = NULL;
+			purpair = ReserveMemsforPurif(memright, memsize);
+			double delay = GetDistofNodes(purpair->mem[0]->innode, purpair->mem[1]->innode) * 5;
+			//Schedule purification
+			SimItem *purifr = new SimItem;
+			purifr->FuncToCall = bind(this->purification, Sim, memright, memsize, targetfid);
+			purifr->extime = Sim->curtime + delay;
+			purifr->name = "purright";
+			Sim->Schedule(purifr);
+			//check again after purification
+			SimItem * check = new SimItem;
+			check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+			check->extime = Sim->curtime + delay;
+			check->name = "updpurt";
+			Sim->Schedule(check);
+		}
+		else
+		{
+			//Schedule purification
+			SimItem *purifr = new SimItem;
+			purifr->FuncToCall = bind(this->purification, Sim, memright, memsize, targetfid);
+			purifr->extime = Sim->curtime;
+			purifr->name = "purright";
+			Sim->Schedule(purifr);
+			//check again after purification
+			SimItem * check = new SimItem;
+			check->FuncToCall = bind(&Node::Updateformeasure, this, Sim);
+			check->extime = Sim->curtime;
+			check->name = "updpurt";
+			Sim->Schedule(check);
+		}
 	}
 
 	if (Sim->diagnostics != 0) cout << endl << "Updateformeasure" << endl;
@@ -1002,7 +1068,7 @@ int DEJ2Purif(QPair * pair1, QPair * pair2)
 	return 0;
 }
 
-int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
+int GreedyBU_DEJPurif(SimRoot * Sim, QMem * mem, int memsize, double targetfid)
 {
 	//check if there's need for purification
 	int freemems = 0;
@@ -1016,18 +1082,61 @@ int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
 	{
 
 		QMem ** toPurif = new QMem*[memsize];
+		QMem ** holdtoPurif = new QMem*[memsize];
 		int j = 0;
 		for (int i = 0; i < memsize; i++) toPurif[i] = NULL;
-		//collect pairs to be purified 
-		for (int i = 0; i < memsize; i++)
+		for (int i = 0; i < memsize; i++) holdtoPurif[i] = NULL;
+		//collect pairs to be purified between the same stations
+		int k = 0;
+		bool purifok=false;
+		Node * n1 = NULL;
+		Node * n2 = NULL;
+		for (int k = 0; k < memsize && !purifok; k++) // check if the pairs to purify are between the same nodes or not;
 		{
-			if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3)
+			bool skip = false;
+			j = 0;
+			for (int i = 0; i < memsize; i++) toPurif[i] = NULL;
+			if (mem[k].pair != NULL)
 			{
-				toPurif[j] = &mem[i];
-				j++;
+				if (mem[k].pair->mem[0] != NULL)
+				{
+					n1 = mem[k].pair->mem[0]->innode;
+				}
+				else
+				{
+					skip = true;
+				}
+				if (mem[k].pair->mem[1] != NULL)
+				{
+					n2 = mem[k].pair->mem[1]->innode;
+				}
+				else
+				{
+					skip = true;
+				}
+			}
+			else
+			{
+				skip = true;
+			}
+			for (int i = 0; i < memsize && !skip; i++)
+			{
+				if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3 && mem[i].pair->mem[0]->innode == n1 && mem[i].pair->mem[1]->innode == n2)
+				{
+					toPurif[j] = &mem[i];
+					j++;
+				}
+			}
+			if (j > 1 && !skip)
+			{
+				purifok = true;
 			}
 		}
-
+		//save findings
+		for (int i = 0; i < memsize; i++)
+		{
+			holdtoPurif[i] = toPurif[i];
+		}
 		//Purify while there are pairs to be purified
 		//find the smallest indexes
 		QMem *m1, *m2, *aux;
@@ -1128,6 +1237,21 @@ int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid)
 		}
 
 		// cout << endl << "yesyesyesyes" << endl;
+		// set mems available after purification ends;
+		for (int i = 0; i < memsize; i++)
+		{
+			if (holdtoPurif[i] != NULL)
+			{
+				if (holdtoPurif[i]->pair != NULL)
+				{
+					holdtoPurif[i]->pair->mem[0]->inpurif = false;
+					holdtoPurif[i]->pair->mem[1]->inpurif = false;
+				}
+			}
+		}
+
+		delete[] holdtoPurif;
+		delete[] toPurif;
 		return 1;
 	}
 	else
@@ -1158,4 +1282,161 @@ double Vec4Calcstdfid(Vector4cd state)
 	target << 1 / sqrt(2), 0, 0, 1 / sqrt(2);
 
 	return (state.adjoint()*(target*target.adjoint())*state).norm();
+}
+
+bool Checkforpurif(QMem * mem, int memsize, double targetfid)
+{
+
+	int j = 0;
+	//collect pairs to be purified between the same stations
+	int k = 0;
+	bool purifok = false;
+	Node * n1 = NULL;
+	Node * n2 = NULL;
+	for (int k = 0; k < memsize && !purifok; k++) // check if the pairs to purify are between the same nodes or not;
+	{
+		bool skip = false;
+		j = 0;
+		if (mem[k].pair != NULL)
+		{
+			if (mem[k].pair->mem[0] != NULL)
+			{
+				n1 = mem[k].pair->mem[0]->innode;
+			}
+			else
+			{
+				skip = true;
+			}
+			if (mem[k].pair->mem[1] != NULL)
+			{
+				n2 = mem[k].pair->mem[1]->innode;
+			}
+			else
+			{
+				skip = true;
+			}
+		}
+		else
+		{
+			skip = true;
+		}
+
+		for (int i = 0; i < memsize && !skip; i++)
+		{
+			if (mem[i].fid < targetfid && mem[i].ReadytoMeasure && mem[i].state == 3 && mem[i].pair->mem[0]->innode == n1 && mem[i].pair->mem[1]->innode == n2 && !mem[i].inpurif) // purifiable and have the same endpoints
+			{
+				j++;
+			}
+		}
+		if (j > 1 && !skip)
+		{
+			purifok = true;
+		}
+	}
+	return purifok;
+}
+
+double GetDistofNodes(Node * n1, Node * n2)
+{
+	if (n1 == NULL || n2 == NULL)
+	{
+		return -1;
+	}
+	bool found = false;
+	double dist=0;
+	Node *curnode = n1;
+	while(curnode!=NULL && !found) // try right first
+	{
+		dist = dist + curnode->physdistright;
+		if (curnode->physNoderight == n2) found = true;
+		curnode = curnode->physNoderight;
+	}
+	if (found)
+	{
+		return dist;
+	}
+	dist = 0;
+	curnode = n1;
+	while (curnode != NULL && !found) // try left
+	{
+		dist = dist + curnode->physdistleft;
+		if (curnode->physNodeleft == n2) found = true;
+		curnode = curnode->physNodeleft;
+	}
+	if (found)
+	{
+		return dist;
+	}
+	return -1;
+}
+
+QPair* ReserveMemsforPurif(QMem * mem, int memsize)
+{
+	QPair* retpair = NULL;
+	QMem ** toPurif = new QMem*[memsize];
+	int j = 0;
+	for (int i = 0; i < memsize; i++) toPurif[i] = NULL;
+	//collect pairs to be purified between the same stations
+	int k = 0;
+	bool purifok = false;
+	Node * n1 = NULL;
+	Node * n2 = NULL;
+	for (int k = 0; k < memsize && !purifok; k++) // check if the pairs to purify are between the same nodes or not;
+	{
+		bool skip = false;
+		j = 0;
+		for (int i = 0; i < memsize; i++) toPurif[i] = NULL;
+		if (mem[k].pair != NULL)
+		{
+			if (mem[k].pair->mem[0] != NULL)
+			{
+				n1 = mem[k].pair->mem[0]->innode;
+			}
+			else
+			{
+				skip = true;
+			}
+			if (mem[k].pair->mem[1] != NULL)
+			{
+				n2 = mem[k].pair->mem[1]->innode;
+			}
+			else
+			{
+				skip = true;
+			}
+		}
+		else
+		{
+			skip = true;
+		}
+		for (int i = 0; i < memsize && !skip; i++)
+		{
+			if (mem[i].fid < mem[i].innode->targetfid && mem[i].ReadytoMeasure && mem[i].state == 3 && mem[i].pair->mem[0]->innode == n1 && mem[i].pair->mem[1]->innode == n2)
+			{
+				toPurif[j] = &mem[i];
+				j++;
+			}
+		}
+		if (j > 1 && !skip)
+		{
+			purifok = true;
+		}
+	}
+	for (int i = 0; i < memsize; i++)
+	{
+		if (toPurif[i] != NULL)
+		{
+			toPurif[i]->pair->mem[0]->inpurif = true;
+			toPurif[i]->pair->mem[1]->inpurif = true;
+		}
+	}
+	for (int i = 0; i < memsize; i++)
+	{
+		if (toPurif[i] != NULL)
+		{
+			retpair = toPurif[i]->pair;
+		}
+	}
+	delete[] toPurif;
+	return retpair;
 }

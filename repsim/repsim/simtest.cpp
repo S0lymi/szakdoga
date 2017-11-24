@@ -8,46 +8,65 @@
 
 int main()
 {
+	pairsinmem = 0;
+	memsinmem = 0;
+	itemsinmem = 0;
+	measuresinmem = 0;
+	nodesinmem = 0;
+	eprsinmem = 0;
+	channelsinmem = 0;
+	withpurifpp = 0;
+
 	Pow2Sim Sim;
-	Sim.eprnumber = 8;
-	Sim.dist = 80;
+	Sim.eprnumber = 32;
+	Sim.dist = 400;
 	Sim.chalength = 20;
-	Sim.memsize = 10;
+	Sim.memsize = 20;
 	Sim.epratonce = 4;
 	Sim.targetfid = 0.98;
 	Sim.std_epr->fidelity = 0.7;
-	Sim.std_epr->rate = 20;
-	pairsinmem = 0;
-	 memsinmem = 0;
-	 itemsinmem = 0;
-	 measuresinmem = 0;
-	 nodesinmem = 0;
-	 eprsinmem = 0;
-	 channelsinmem;
+	Sim.std_epr->rate = 10;
 	//double avgtime = 0;
 	//double avgmemtime = 0;
 	//measure execution time
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	Sim.AvgFidSweep(200, 0.65, 1, 0.05, "fidsweep.m");
+	Sim.SimpleSim(100, "simple200.m");
+	//Sim.AvgFidSweep(500, 0.6, 1, 0.01, "fidsweep.m");
 	chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
 
-	double duration = chrono::duration_cast<chrono::seconds>(t2 - t1).count();
+	int duration = chrono::duration_cast<chrono::seconds>(t2 - t1).count();
 
-	cout <<"execution time:"<< duration<<" s"<<endl;
+	cout << "execution time:" << duration / 3600 << " h " << (duration % 3600) / 60 << " m " << duration % 60 << " s " << endl;
 
 	//cout << endl << "avgtime: " << avgtime << "     avgmemtime: " << avgmemtime << endl;
 	cout << '\a';
 	cout << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
 		<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
 	/*
-	Node nodes[9];
-	Node eprnodes[8];
-	Channel channels[16];
+	Node* nodes= new Node[9];
+	Node* eprnodes = new Node[8];
+	Channel* channels = new Channel[16];
 	EPR std_epr;
 	std_epr.rate = 20;
 	std_epr.fidelity = 0.7;
 
-	Pow2Setup(nodes, eprnodes, channels, 8, &std_epr, 80, 50, 4);
+	Pow2Setup(nodes, eprnodes, channels, 8, &std_epr, 80, 10, 1);
+
+	SimRoot Simr;
+	Simr.diagnostics = 1;
+	int a = 1;
+	eprnodes[0].GenEPR(&Simr);
+	Simr.printlisttimes();
+	while (a != 0)
+	{
+		Simr.ExecuteNext();
+		Simr.printlisttimes();
+		cout << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+			<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
+		nodes[1].printmemstates();
+		cin >> a;
+	}
+
 	//*/
 	/*
 	for (int i = 0; i < 16; i++)

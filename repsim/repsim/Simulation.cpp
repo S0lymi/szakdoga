@@ -1,5 +1,5 @@
 #include "Simulation.h"
-
+#include "elements.h"
 SimItem::SimItem()
 {
 	extime = 0;
@@ -24,7 +24,35 @@ SimRoot::SimRoot()
 
 SimRoot::~SimRoot()
 {
-	//cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+	cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+	this->printlisttimes();
+	//execute pair distribution  items, so there are no pairs left in system;
+	SimItem * todo;
+	todo = nextItem;
+	int auxcount = 0;
+	while (todo != NULL)
+	{
+		cout << endl << "asdasdadasdasdasdasdasdasdasdasd" << endl;
+		if (todo->name == "rcvch" || todo->name == "thrch" || todo->name == "chrecscr" || todo->name == "chrecscr" || todo->name == "chrecscl")// these items have to be done in order to free the pairs
+		{
+			curtime = todo->extime;
+			todo->FuncToCall();
+			SimItem *aux1, *aux2;
+			aux1 = todo->nextItem;
+			aux2 = todo->prevItem;
+			delete todo;
+			todo = aux1;
+			todo->prevItem = aux2;
+			if (aux2 != NULL) aux2->nextItem = todo;
+			auxcount++;
+			cout << " in ";
+		}
+		else
+		{
+			cout << " else ";
+			todo = todo->nextItem;
+		}
+	}
 	int count = 0;
 	while (nextItem != NULL)
 	{
@@ -42,11 +70,12 @@ SimRoot::~SimRoot()
 			nextItem = NULL;
 		}
 		//cout << "bbb" << endl;
+		//if(nextnext->name == "rcvch" && nextnext->name == "thrch" && nextnext->name == "chrecscr" && nextnext->name == "chrecscr" && nextnext->name == "chrecscl")
 		count++;
 		delete nextnext;
 	}
-	//cout << "delcount: "<< count << endl;
-	//cout << "cccccccCCCCCCCCccccccccc" << endl;
+	cout << "delcount: " << count << endl << "auxcount: " << auxcount << endl;
+	cout << "cccccccCCCCCCCCccccccccc" << endl;
 }
 
 void SimRoot::Schedule(SimItem * item)

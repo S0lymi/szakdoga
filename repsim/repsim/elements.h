@@ -78,9 +78,13 @@ public:
 	Channel* leftch;
 	Channel* rightch;
 	int type;
-	function<int(QMem*,int,double)> purification;
+	function<int(SimRoot*,QMem*,int,double)> purification;
 	double targetfid;
 	int epratonce;
+	Node * physNodeleft;
+	Node * physNoderight;
+	double physdistleft;
+	double physdistright;
 	//konst
 	Node(int memsizek=10,Node* prevnl=NULL,double prevdl=0, Node* prevnr = NULL, double prevdr = 0,Node* nextn=NULL,double nextd=0,EPR *eprk=NULL,Channel *leftchk=NULL, Channel * rightchk=NULL);
 	//dest
@@ -122,8 +126,14 @@ int DEJPurif(QPair * pair1, QPair * pair2);
 
 int DEJ2Purif(QPair * pair1, QPair * pair2);
 
-int GreedyBU_DEJPurif(QMem * mem, int memsize, double targetfid);
+int GreedyBU_DEJPurif(SimRoot * Sim, QMem * mem, int memsize, double targetfid);
 
 void FidSortMems(QMem ** mems, int size);
 
 double Vec4Calcstdfid(Vector4cd state);
+
+bool Checkforpurif(QMem * mem, int memsize, double targetfid);
+
+double GetDistofNodes(Node * n1, Node * n2);
+
+QPair* ReserveMemsforPurif(QMem* mem, int memsize);

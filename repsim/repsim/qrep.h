@@ -13,8 +13,10 @@ extern int measuresinmem;
 extern int nodesinmem;
 extern int eprsinmem;
 extern int channelsinmem;
+extern int withpurifpp;
 
 class QMem;
+class Node;
 
 class QPair
 {
@@ -48,7 +50,8 @@ public:
 	double fid;
 	int state;
 	double rcvtime;
-
+	Node* innode;
+	bool inpurif;
 
 	//konst
 	QMem(QPair * pairk = NULL, int pairindexk = 0, double maxtime = 0, bool rdy = false, double fidk = 0 , int statek = 0);

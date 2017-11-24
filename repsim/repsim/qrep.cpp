@@ -7,6 +7,7 @@ int measuresinmem;
 int nodesinmem;
 int eprsinmem;
 int channelsinmem;
+int withpurifpp = 0;
 //QPair
 
 QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2, int simstate1, int simstate2)
@@ -119,7 +120,11 @@ QMem::QMem(QPair * pairk, int pairindexk, double maxtimek, bool rdy, double fidk
 	fid = fidk;
 	state = statek;
 	rcvtime = 0;
+	innode = NULL;
+	inpurif = false;
+
 	memsinmem++;
+
 }
 
 QMem::~QMem()

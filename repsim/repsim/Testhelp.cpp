@@ -71,7 +71,7 @@ void InitLintree(Node nodes[], Node eprnodes[], Channel channels[], EPR * epr, i
 
 }
 
-void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(QMem*, int, double)> PurifMethod)
+void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem*, int, double)> PurifMethod)
 {
 	// set up the channels
 	for (int i = 0; i < eprnumber*2; i++)
@@ -120,6 +120,57 @@ void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber,
 			nodes[i].prevdistright = nodes[i].prevNoderight->leftch->length;
 		}
 
+	}
+	//set up physical positions
+	nodes[0].physNoderight = &eprnodes[0];
+	nodes[0].physdistright = eprnodes[0].leftch->length;
+	nodes[eprnumber].physNodeleft = &eprnodes[eprnumber - 1];
+	nodes[eprnumber].physdistleft = eprnodes[eprnumber - 1].rightch->length;
+	for (int i = 1; i < eprnumber; i++)
+	{
+		nodes[i].physNodeleft = &eprnodes[i-1];
+		nodes[i].physdistleft = eprnodes[i-1].rightch->length;
+		nodes[i].physNoderight = &eprnodes[i];
+		nodes[i].physdistright = eprnodes[i].leftch->length;
+	}
+	for (int i = 0; i < eprnumber; i++)
+	{
+		eprnodes[i].physNodeleft = &nodes[i];
+		eprnodes[i].physdistleft = eprnodes[i].leftch->length;
+		eprnodes[i].physNoderight = &nodes[i+1];
+		eprnodes[i].physdistright = eprnodes[i].rightch->length;
+	}
+}
+
+void LinSetup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem*, int, double)> PurifMethod)
+{
+	//set up structure
+	InitLintree(nodes, eprnodes, channels, std_epr, eprnumber, dist, chalength);
+	// set additional parameters
+	for (int i = 0; i < eprnumber + 1; i++)
+	{
+		nodes[i].ChangeMemsize(memsize);
+		nodes[i].targetfid = targetfid;
+		nodes[i].purification = PurifMethod;
+	}
+	//set up physical positions
+	nodes[0].physNoderight = &eprnodes[0];
+	nodes[0].physdistright = eprnodes[0].leftch->length;
+	nodes[eprnumber].physNodeleft = &eprnodes[eprnumber - 1];
+	nodes[eprnumber].physdistleft = eprnodes[eprnumber - 1].rightch->length;
+	for (int i = 1; i < eprnumber; i++)
+	{
+		nodes[i].physNodeleft = &eprnodes[i - 1];
+		nodes[i].physdistleft = eprnodes[i - 1].rightch->length;
+		nodes[i].physNoderight = &eprnodes[i];
+		nodes[i].physdistright = eprnodes[i].leftch->length;
+	}
+	for (int i = 0; i < eprnumber; i++)
+	{
+		eprnodes[i].physNodeleft = &nodes[i];
+		eprnodes[i].physdistleft = eprnodes[i].leftch->length;
+		eprnodes[i].physNoderight = &nodes[i + 1];
+		eprnodes[i].physdistright = eprnodes[i].rightch->length;
 	}
 }
 
@@ -179,10 +230,10 @@ int Pow2Sim::SimpleSim(int targetpairs, string filename)
 	}
 
 	//clean up after
+	delete Sim;
 	delete[] nodes;
 	delete[] eprnodes;
 	delete[] channels;
-	delete Sim;
 
 	return 0;
 }
@@ -335,10 +386,10 @@ int Pow2Sim::AvgSim(int targetpairs, double * avgtime, double * avgmemtime)
 	*avgtime = Sim->curtime / (double) targetpairs;
 	*avgmemtime = *avgmemtime / (double)targetpairs;
 	//clean up after
+	delete Sim;
 	delete[] nodes;
 	delete[] eprnodes;
 	delete[] channels;
-	delete Sim;
 
 	return 0;
 
