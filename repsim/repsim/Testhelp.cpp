@@ -71,7 +71,7 @@ void InitLintree(Node nodes[], Node eprnodes[], Channel channels[], EPR * epr, i
 
 }
 
-void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem*, int, double)> PurifMethod)
+void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem**, int, double)> PurifMethod)
 {
 	// set up the channels
 	for (int i = 0; i < eprnumber*2; i++)
@@ -142,7 +142,7 @@ void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber,
 	}
 }
 
-void LinSetup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem*, int, double)> PurifMethod)
+void LinSetup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem**, int, double)> PurifMethod)
 {
 	//set up structure
 	InitLintree(nodes, eprnodes, channels, std_epr, eprnumber, dist, chalength);
@@ -183,7 +183,7 @@ Pow2Sim::Pow2Sim()
 	epratonce = 4;
 	chalength = 20;
 	targetfid = 0.98;
-	PurifMethod = GreedyBU_DEJPurif;
+	PurifMethod = GreedyBU_DEJPurif2;
 }
 
 Pow2Sim::~Pow2Sim()
@@ -210,7 +210,15 @@ int Pow2Sim::SimpleSim(int targetpairs, string filename)
 	for (int i = 0; i < eprnumber; i++) eprnodes[i].GenEPR(Sim); // firts stimuli
 	while (donepairs < targetpairs)
 	{
+		//Sim->printlisttimes();
 		Sim->ExecuteNext();
+		//for (int asd = 0; asd < eprnumber; asd++)
+		//{
+		//	cout << endl << "left" << endl;
+		//	meminfo(nodes[asd].memleft, nodes[asd].memsize);
+		//	cout << endl << "right" << endl;
+		//	meminfo(nodes[asd].memright, nodes[asd].memsize);
+		//}
 		for (int i = 0; i < nodes[eprnumber].memsize; i++)
 		{
 			if (nodes[eprnumber].memleft[i].state == 3 && nodes[eprnumber].memleft[i].ReadytoMeasure == 1 && nodes[eprnumber].memleft[i].fid >= nodes[eprnumber].targetfid) // pair is nice and well at endpoints
@@ -426,6 +434,17 @@ int Pow2Sim::AvgFidSweep(int targetpairs, double from, double to, double step, s
 	wstring wstr;
 	wstr.assign(str.begin(), str.end());
 	SetConsoleTitle(wstr.c_str());
+	return 0;
+}
+
+int meminfo(QMem * mem, int memsize)
+{
+	for (int i = 0; i < memsize; i++)
+	{
+		cout << "fid" << i << ": " << mem[i].fid << "  st: " << mem[i].state << "  rd: " << mem[i].ReadytoMeasure << "  pur: " << mem[i].inpurif << "    ";
+		if (i % 2 == 1) cout << endl;
+	}
+
 	return 0;
 }
 

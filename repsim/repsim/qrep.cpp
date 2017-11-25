@@ -156,4 +156,5 @@ void QMem::reset()
 	state = 0;
 	fid = 0;
 	rcvtime = 0;
+	inpurif = false;
 }

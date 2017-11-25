@@ -18,19 +18,19 @@ int main()
 	withpurifpp = 0;
 
 	Pow2Sim Sim;
-	Sim.eprnumber = 32;
-	Sim.dist = 400;
+	Sim.eprnumber = 8;
+	Sim.dist = 80;
 	Sim.chalength = 20;
-	Sim.memsize = 20;
+	Sim.memsize = 10;
 	Sim.epratonce = 4;
 	Sim.targetfid = 0.98;
 	Sim.std_epr->fidelity = 0.7;
-	Sim.std_epr->rate = 10;
+	Sim.std_epr->rate = 100;
 	//double avgtime = 0;
 	//double avgmemtime = 0;
 	//measure execution time
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	Sim.SimpleSim(100, "simple200.m");
+	Sim.SimpleSim(100, "simple201.m");
 	//Sim.AvgFidSweep(500, 0.6, 1, 0.01, "fidsweep.m");
 	chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
 
