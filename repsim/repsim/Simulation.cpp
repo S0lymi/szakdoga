@@ -35,17 +35,44 @@ SimRoot::~SimRoot()
 		cout << endl << "asdasdadasdasdasdasdasdasdasdasd" << endl;
 		if (todo->name == "rcvch" || todo->name == "thrch" || todo->name == "chrecscr" || todo->name == "chrecscr" || todo->name == "chrecscl")// these items have to be done in order to free the pairs
 		{
-			curtime = todo->extime;
-			todo->FuncToCall();
-			SimItem *aux1, *aux2;
-			aux1 = todo->nextItem;
-			aux2 = todo->prevItem;
-			delete todo;
-			todo = aux1;
-			todo->prevItem = aux2;
-			if (aux2 != NULL) aux2->nextItem = todo;
-			auxcount++;
-			cout << " in ";
+			//spec case if todo is nextItem
+			if (todo == nextItem)
+			{
+				curtime = nextItem->extime;
+				nextItem->FuncToCall();
+				SimItem *aux;
+				aux = nextItem->nextItem;
+				cout << "aux: " << aux << endl;
+				delete nextItem;
+				nextItem = aux;
+				if (nextItem != NULL) nextItem->prevItem = NULL;
+				todo = nextItem;
+				cout << "spec nt:" << nextItem << endl;
+			}
+			else
+			{
+				curtime = todo->extime;
+				todo->FuncToCall();
+				SimItem *aux1, *aux2;
+				aux1 = todo->nextItem;
+				aux2 = todo->prevItem;
+				delete todo;
+				if (aux1 != NULL)
+				{
+					todo = aux1;
+
+					todo->prevItem = aux2;
+					if (aux2 != NULL) aux2->nextItem = todo;
+					auxcount++;
+					cout << " in ";
+				}
+				else
+				{
+					todo = aux1;
+					if (aux2 != NULL) aux2->nextItem = todo;
+					cout << "iels";
+				}
+			}
 		}
 		else
 		{

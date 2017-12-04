@@ -17,6 +17,7 @@ public:
 	EPR(Vector4cd * statek = NULL, double fidelityk = 1,double ratek = 10);
 	//dest
 	~EPR();
+	//ops
 	//other
 	void print();
 		

@@ -1,0 +1,52 @@
+\appendix
+%----------------------------------------------------------------------------
+\chapter*{Függelék}\addcontentsline{toc}{chapter}{Függelék}
+
+\setcounter{chapter}{6}  % a fofejezet-szamlalo az angol ABC 6. betuje (F) lesz
+\setcounter{equation}{0} % a fofejezet-szamlalo az angol ABC 6. betuje (F) lesz
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{lstlisting}{section}
+
+\section{Sűrűségmátrixos leírás} \label{suru}
+
+Az \cite{kvantkonyv2} alapján:
+Ennél a leírásná a rendszert a lehetséges állapotainak valószínűségeinek összegével jellemezzük:
+\begin{center}
+$ p=\sum_i p_i \ket{\phi}\bra{\phi_i} $
+\end{center}
+ahol $ \ket{\phi_i} $ az i-edik rendszer állapot, melynek előfordulási valószínűsége $ p_i $ a sűrűségmátrixos leírás ilyen ún. tiszta állapotok valószínűségi elegyeként írja le a rendszert. Ezek alapján például a 
+\begin{center}
+$ \ket{\psi}=a\ket{0}+b\ket{1}= \begin{bmatrix} a\\b \end{bmatrix} $
+\end{center}
+rendszer sűrűségmátrixa a következőképpen számolható:
+\begin{center}
+$ p= \ket{\phi}\bra{\phi} = \begin{bmatrix} a \\ b \end{bmatrix} = \begin{bmatrix} a^* b^* \end{bmatrix}= \begin{bmatrix} aa^*\quad  ab^*\\a^*b \quad bb^* \end{bmatrix} = \begin{bmatrix} \abs{a}^2 \quad ab^* \\ a^*b \quad \abs{b}^2 \end{bmatrix} $
+\end{center}
+Ezen felül definiáljük még a “trace” (magyarul nyom) operátort a következőképpen. Egy n-szer n-es A mátrixra:
+\begin{center}
+$ Tr(A) = a_{11}+a_{22}+... +a_nn= \sum_{i=1}^n a_{ii} $
+\end{center}
+Továbbá említésre méltó még, hogy Tr(A) egyenlő A sajátértékeinek összegével.
+
+\section{Összefonódás megosztás lépésről lépésre} \label{osszfonmeg}
+
+Vizsgáljuk a következőt :
+\begin{center}
+$ \ket{\Psi^+}\otimes\ket{\Psi^+}-\ket{\Psi^-}\otimes\ket{\Psi^-} = \frac{1}{2}\Big( (\ket{01}+\ket{10})\otimes(\ket{01}+\ket{10})- (\ket{01}-\ket{10})\otimes(\ket{01}-\ket{10}) \Big)= 
+\frac{1}{2} \Big( \ket{0101}+\ket{0110}+\ket{1001}+\ket{1010}-\ket{0101}+\ket{0110}+\ket{1001}-\ket{1010} \Big) = \frac{1}{2}(2\ket{0110}+2\ket{1001}) = \ket{0110}+\ket{1001}  $
+\end{center}
+hasonlóan:
+\begin{center}
+$ \ket{\Phi^+}\otimes\ket{\Phi^+}-\ket{\Phi^-}\otimes\ket{\Phi^-} = \frac{1}{2}\Big( (\ket{00}+\ket{11})\otimes(\ket{00}+\ket{11})- (\ket{00}-\ket{11})\otimes(\ket{00}-\ket{11}) \Big)= 
+\frac{1}{2} \Big( \ket{0000}+\ket{0011}+\ket{1100}+\ket{1111}-\ket{0000}+\ket{0011}+\ket{1100}-\ket{1111} \Big) = \frac{1}{2}(2\ket{0011}+2\ket{1100}) = \ket{0011}+\ket{1100}  $
+\end{center}
+Ezek felhasználásával már egyszerűen levezethető hogy:
+\begin{center}
+$  \ket{\Psi_{kezd}^-}= \ket{\Psi^-}_{AB} \otimes \ket{\Psi^-}_{CD} = \frac{1}{\sqrt{2}}(\ket{0_A1_B}-\ket{1_A0_B})\frac{1}{\sqrt{2}}(\ket{0_C1_D}-\ket{1_C0_D}) =
+\frac{1}{2} \Big( \ket{0_A1_B0_C1_D}-\ket{0_A1_B1_C0_D}-\ket{1_A0_B0_C1_D}+\ket{1_A0_B1_C0_D} \Big) =
+ \frac{1}{2} \Big( \ket{0_A1_D1_B0_C}-\ket{0_A0_D1_B1_C}-\ket{1_A1_D0_B0_C}+\ket{1_A0_D0_B1_C} \Big) =
+  \frac{1}{2} \Big( \ket{0_A1_D1_B0_C}+\ket{1_A0_D0_B1_C}-(\ket{0_A0_D1_B1_C}+\ket{1_A1_D0_B0_C}) \Big) =
+ \frac{1}{2} \Big( \ket{\Psi^+}_{AD}\ket{\Psi^+}_{BC}-\ket{\Psi^-}_{AD}\ket{\Psi^-}_{BC} - \ket{\Phi^+}_{AD}\ket{\Phi^+}_{BC}+\ket{\Phi^-}_{AD}\ket{\Phi^-}_{BC} \Big) $
+\end{center}
+

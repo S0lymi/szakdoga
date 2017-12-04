@@ -26,6 +26,7 @@ EPR::~EPR()
 	delete state;
 }
 
+
 void EPR::print()
 {
 	cout << "initstate:" << endl << *state << endl << "fidelity:" << endl << fidelity << endl;
@@ -570,7 +571,9 @@ int Node::Updateformeasure(SimRoot * Sim)
 		}
 	}
 	if (right_other_freemems < right_freemems) right_freemems = right_other_freemems;
-
+	int in=0;
+	//cout << endl << left_freemems << "  " << left_mems_to_purif << "  " << Checkforpurif(memleft, memsize, targetfid) << endl;
+	//cin >> in;
 	if(left_freemems < 2 && left_mems_to_purif>1 && Checkforpurif(memleft,memsize,targetfid)) //check if leftside should purify
 	{ 	//Schedule purification
 		if (withpurifpp == 1)
@@ -581,8 +584,10 @@ int Node::Updateformeasure(SimRoot * Sim)
 			{
 				if (reserved[i] != NULL) distmem = reserved[i];
 			}
-
+			//cout << endl << distmem->pair->mem[0]->innode<<"   "<< distmem->pair->mem[1]->innode << endl;
 			double delay = GetDistofNodes(distmem->pair->mem[0]->innode, distmem->pair->mem[1]->innode) *5;
+			//cout << endl << "delay: " << delay << endl;
+			//cin >> in;
 			SimItem *purifl = new SimItem;
 			purifl->FuncToCall = bind(this->purification, Sim, reserved, memsize, targetfid);
 			purifl->extime = Sim->curtime+delay;
@@ -687,9 +692,12 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				memleft[check].rcvtime = Sim->curtime;
 				pair->mem[index] = &memleft[check];
 				pair->simstate[index] = 3;
-				if (type == 0) // check whether this node is the bottom -> has to start measure chain
+				if (type != 1) // check whether this node is the bottom -> has to start measure chain
 				{
-					if (prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
+					if (prevNodeleft != NULL)
+					{
+						if (prevNodeleft->type == 1) memleft[check].ReadytoMeasure = true;
+					}
 				}
 				else
 				{
@@ -765,9 +773,12 @@ int Node::ReceiveFromCh(SimRoot * Sim, QPair * pair, int index, Channel * from)
 				memright[check].rcvtime = Sim->curtime;
 				pair->mem[index] = &memright[check];
 				pair->simstate[index] = 3;
-				if (type == 0) // check whether this node is the bottom -> has to start measure chain
+				if (type != 1) // check whether this node is the bottom -> has to start measure chain
 				{
-					if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
+					if (prevNoderight != NULL)
+					{
+						if (prevNoderight->type == 1) memright[check].ReadytoMeasure = true;
+					}
 				}
 				else memright[check].ReadytoMeasure = false;
 				//check if both sides of the pair have arrived
@@ -837,29 +848,35 @@ int Node::ReceiveFromChSuccess(SimRoot * Sim, QPair * pair, Node * nodeleft, Nod
 	pair->mem[0]->fid = fidelity;
 	pair->mem[1]->fid = fidelity;
 	//set memory states according to place in chain
-	if (nodeleft->type == 0) // check whether this node is the bottom -> has to start measure chain
+	if (nodeleft->type != 1) // check whether this node is the bottom -> has to start measure chain
 	{
-		if (nodeleft->prevNoderight->type == 1)
+		if (nodeleft->prevNoderight != NULL)
 		{
-			for (int i = 0; i < nodeleft->memsize; i++)//search for leftside memory of pair
+			if (nodeleft->prevNoderight->type == 1)
 			{
-				if (pair == nodeleft->memright[i].pair) 
+				for (int i = 0; i < nodeleft->memsize; i++)//search for leftside memory of pair
 				{
-					nodeleft->memright[i].state = 3;
+					if (pair == nodeleft->memright[i].pair)
+					{
+						nodeleft->memright[i].state = 3;
+					}
 				}
 			}
 		}
 	}
 
-	if (noderight->type == 0) // check whether this node is the bottom -> has to start measure chain
+	if (noderight->type != 1) // check whether this node is the bottom -> has to start measure chain
 	{
-		if (noderight->prevNodeleft->type == 1)
+		if (noderight->prevNodeleft != NULL)
 		{
-			for (int i = 0; i < noderight->memsize; i++)//search for leftside memory of pair
+			if (noderight->prevNodeleft->type == 1)
 			{
-				if (pair == noderight->memleft[i].pair)
+				for (int i = 0; i < noderight->memsize; i++)//search for leftside memory of pair
 				{
-					noderight->memleft[i].state = 3;
+					if (pair == noderight->memleft[i].pair)
+					{
+						noderight->memleft[i].state = 3;
+					}
 				}
 			}
 		}

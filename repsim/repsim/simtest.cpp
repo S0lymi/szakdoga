@@ -8,6 +8,8 @@
 
 int main()
 {
+	
+	timelimit = 5000;
 	pairsinmem = 0;
 	memsinmem = 0;
 	itemsinmem = 0;
@@ -15,22 +17,271 @@ int main()
 	nodesinmem = 0;
 	eprsinmem = 0;
 	channelsinmem = 0;
-	withpurifpp = 0;
+	withpurifpp = 1;
+		Pow2Sim Sim;
+		Sim.eprnumber = 4;
+		Sim.dist = 50;
+		Sim.chalength = 20;
+		Sim.memsize = 20;
+		Sim.epratonce = 5;
+		Sim.targetfid = 0.98;
+		Sim.std_epr->fidelity = 0.7;
+		Sim.std_epr->rate = 10;
 
-	Pow2Sim Sim;
-	Sim.eprnumber = 8;
-	Sim.dist = 80;
-	Sim.chalength = 20;
-	Sim.memsize = 10;
-	Sim.epratonce = 4;
-	Sim.targetfid = 0.98;
-	Sim.std_epr->fidelity = 0.7;
-	Sim.std_epr->rate = 100;
 	//double avgtime = 0;
 	//double avgmemtime = 0;
 	//measure execution time
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	Sim.SimpleSim(100, "simple201.m");
+	Sim.std_epr->fidelity = 0.7;
+	//ch
+	//Sim.std_epr->rate = 10.0/ 8.0;
+	//Sim.memsize = 40;
+	//Sim.eprnumber = 1;
+	//Sim.AvgLengthSweep(200, 5, 500, 5, "results/repvsch/chfid07handicapped_5_500.m");
+	//rep2
+	int threads = 8;
+	Sim.eprnumber = 4;
+	Sim.dist = 150;
+	//2
+	Sim.std_epr->rate = 2;
+	Sim.memsize = 80;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep2_150.m", threads);
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_150.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_150.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_150.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_150.m", threads);
+	
+	//200
+	Sim.dist = 200;
+	 
+	//2
+	Sim.std_epr->rate = 2;
+	Sim.memsize = 80;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep2_200.m", threads);
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_200.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_200.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_200.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_200.m", threads);
+
+	//250
+	Sim.dist = 250;
+
+	//2
+	Sim.std_epr->rate = 2;
+	Sim.memsize = 80;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep2_250.m", threads);
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_250.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_250.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_250.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_250.m", threads);
+
+	//300
+	Sim.dist = 300;
+
+	//2
+	Sim.std_epr->rate = 2;
+	Sim.memsize = 80;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep2_300.m", threads);
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_300.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_300.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_300.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_300.m", threads);
+
+	//350
+	Sim.dist = 350;
+
+	//2
+	Sim.std_epr->rate = 2;
+	Sim.memsize = 80;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep2_350.m", threads);
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_350.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_350.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_350.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_350.m", threads);
+
+	//400
+	Sim.dist = 400;
+
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_400.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_400.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_400.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_400.m", threads);
+
+	//450
+	Sim.dist = 450;
+
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_450.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_450.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_450.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_450.m", threads);
+
+	//500
+	Sim.dist = 500;
+
+	//4
+	Sim.std_epr->rate = 4;
+	Sim.memsize = 40;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep4_500.m", threads);
+	//8
+	Sim.std_epr->rate = 8;
+	Sim.memsize = 20;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_500.m", threads);
+	//16
+	Sim.std_epr->rate = 16;
+	Sim.memsize = 10;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep16_500.m", threads);
+	//32
+	Sim.std_epr->rate = 32;
+	Sim.memsize = 5;
+	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_500.m", threads);
+	/*
+	//fid 0.7
+	Sim.std_epr->fidelity = 0.7;
+	Sim.eprnumber = 4;
+	Sim.AvgLengthSweep(500, 40, 1000, 20,"lengthfid07_40_1000_20_4");
+	Sim.eprnumber = 8;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid07_40_1000_20_8");
+	Sim.eprnumber = 16;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid07_40_1000_20_16");
+	Sim.eprnumber = 32;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid07_40_1000_20_32");
+	Sim.eprnumber = 64;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid07_40_1000_20_64");
+	//fid 0.8
+	Sim.std_epr->fidelity = 0.8;
+	Sim.eprnumber = 4;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid08_40_1000_20_4");
+	Sim.eprnumber = 8;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid08_40_1000_20_8");
+	Sim.eprnumber = 16;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid08_40_1000_20_16");
+	Sim.eprnumber = 32;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid08_40_1000_20_32");
+	Sim.eprnumber = 64;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid08_40_1000_20_64");
+	//fid 0.9
+	Sim.std_epr->fidelity = 0.9;
+	Sim.eprnumber = 4;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid09_40_1000_20_4");
+	Sim.eprnumber = 8;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid09_40_1000_20_8");
+	Sim.eprnumber = 16;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid09_40_1000_20_16");
+	Sim.eprnumber = 32;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid09_40_1000_20_32");
+	Sim.eprnumber = 64;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid09_40_1000_20_64");
+	//fid 1.0
+	Sim.std_epr->fidelity = 1;
+	Sim.eprnumber = 4;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid10_40_1000_20_4");
+	Sim.eprnumber = 8;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid10_40_1000_20_8");
+	Sim.eprnumber = 16;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid10_40_1000_20_16");
+	Sim.eprnumber = 32;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid10_40_1000_20_32");
+	Sim.eprnumber = 64;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid10_40_1000_20_64");
+	//fid 0.6
+	Sim.std_epr->fidelity = 0.6;
+	Sim.eprnumber = 4;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid06_40_1000_20_4");
+	Sim.eprnumber = 8;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid06_40_1000_20_8");
+	Sim.eprnumber = 16;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid06_40_1000_20_16");
+	Sim.eprnumber = 32;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid06_40_1000_20_32");
+	Sim.eprnumber = 64;
+	Sim.AvgLengthSweep(500, 40, 1000, 20, "lengthfid06_40_1000_20_64");
+	//*/
+
+
 	//Sim.AvgFidSweep(500, 0.6, 1, 0.01, "fidsweep.m");
 	chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
 

@@ -8,6 +8,7 @@ int nodesinmem;
 int eprsinmem;
 int channelsinmem;
 int withpurifpp = 0;
+double timelimit = 20000;
 //QPair
 
 QPair::QPair(Vector4cd * statek,double* agek,QMem * mem1,QMem * mem2, int simstate1, int simstate2)

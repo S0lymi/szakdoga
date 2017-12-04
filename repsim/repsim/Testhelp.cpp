@@ -73,6 +73,57 @@ void InitLintree(Node nodes[], Node eprnodes[], Channel channels[], EPR * epr, i
 
 void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem**, int, double)> PurifMethod)
 {
+	if (eprnumber == 1)
+	{
+		//set channels
+		channels[0].from = &eprnodes[0];
+		channels[0].to = &nodes[0];
+		channels[1].from = &eprnodes[0];
+		channels[1].to = &nodes[1];
+		channels[0].length = dist / (eprnumber * 2);
+		channels[0].alength = chalength;
+		channels[1].length = dist / (eprnumber * 2);
+		channels[1].alength = chalength;
+		//set epr
+		eprnodes[0].prevNodeleft = &nodes[0];
+		eprnodes[0].prevNoderight = &nodes[1];
+		eprnodes[0].leftch = &channels[0];
+		eprnodes[0].prevdistleft = channels[0].length;
+		eprnodes[0].rightch = &channels[1];
+		eprnodes[0].prevdistright = channels[1].length;
+		eprnodes[0].epr = std_epr;
+		eprnodes[0].type = 1;
+		eprnodes[0].epratonce = epratonce;
+		//set nodes
+		nodes[0].type = 2;
+		nodes[1].type = 2;
+		nodes[1].nextNode = &nodes[0];
+		nodes[1].nextdist = eprnodes[0].leftch->length + eprnodes[0].rightch->length;
+		nodes[0].ChangeMemsize(memsize);
+		nodes[0].targetfid = targetfid;
+		nodes[0].purification = PurifMethod;
+		nodes[1].ChangeMemsize(memsize);
+		nodes[1].targetfid = targetfid;
+		nodes[1].purification = PurifMethod;
+		nodes[1].prevNodeleft = &eprnodes[0];
+		nodes[1].prevdistleft = nodes[1].prevNodeleft->rightch->length;
+		nodes[0].prevNoderight = &nodes[1];
+		nodes[0].prevdistright = nodes[0].prevNoderight->nextdist;
+
+		//set up physical positions
+		nodes[0].physNoderight = &eprnodes[0];
+		nodes[0].physdistright = eprnodes[0].leftch->length;
+		nodes[eprnumber].physNodeleft = &eprnodes[eprnumber - 1];
+		nodes[eprnumber].physdistleft = eprnodes[eprnumber - 1].rightch->length;
+		eprnodes[0].physNodeleft = &nodes[0];
+		eprnodes[0].physNoderight = &nodes[1];
+		eprnodes[0].physdistleft = eprnodes[0].leftch->length;
+		eprnodes[0].physdistleft = eprnodes[0].rightch->length;
+
+		return;
+
+
+	}
 	// set up the channels
 	for (int i = 0; i < eprnumber*2; i++)
 	{
@@ -116,8 +167,11 @@ void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber,
 			nodes[i].prevNodeleft = &eprnodes[i - 1];
 			nodes[i].prevdistleft = nodes[i].prevNodeleft->rightch->length;
 			//setting right connection
-			nodes[i].prevNoderight = &eprnodes[i];
-			nodes[i].prevdistright = nodes[i].prevNoderight->leftch->length;
+			if (eprnumber % 2 != 1)
+			{
+				nodes[i].prevNoderight = &eprnodes[i];
+				nodes[i].prevdistright = nodes[i].prevNoderight->leftch->length;
+			}
 		}
 
 	}
@@ -363,11 +417,16 @@ int Pow2Sim::AvgSim(int targetpairs, double * avgtime, double * avgmemtime)
 	int donepairs = 0;
 	// start simulation
 	for (int i = 0; i < eprnumber; i++) eprnodes[i].GenEPR(Sim); // firts stimuli
-	while (donepairs < targetpairs)
+	while (donepairs < targetpairs && Sim->curtime < timelimit*targetpairs)
 	{
 		Sim->ExecuteNext();
+		//Sim->printlisttimes();
+		//cout << endl;
+		//nodes[0].printmemstates();
+		//nodes[1].printmemstates();
 		for (int i = 0; i < nodes[eprnumber].memsize; i++)
 		{
+			//cout << nodes[eprnumber].memleft[i].state <<"  "<< nodes[eprnumber].memleft[i].ReadytoMeasure << endl;
 			if (nodes[eprnumber].memleft[i].state == 3 && nodes[eprnumber].memleft[i].ReadytoMeasure == 1 && nodes[eprnumber].memleft[i].fid >= nodes[eprnumber].targetfid) // pair is nice and well at endpoints
 			{
 				donepairs = donepairs + 1;
@@ -391,8 +450,17 @@ int Pow2Sim::AvgSim(int targetpairs, double * avgtime, double * avgmemtime)
 			}
 		}
 	}
-	*avgtime = Sim->curtime / (double) targetpairs;
-	*avgmemtime = *avgmemtime / (double)targetpairs;
+	if (donepairs != 0)
+	{
+		*avgtime = Sim->curtime / (double)donepairs;
+		*avgmemtime = *avgmemtime / (double)donepairs;
+	}
+	else
+	{
+		*avgtime = 0;
+		*avgmemtime = 0;
+	}
+
 	//clean up after
 	delete Sim;
 	delete[] nodes;
@@ -437,6 +505,39 @@ int Pow2Sim::AvgFidSweep(int targetpairs, double from, double to, double step, s
 	return 0;
 }
 
+int Pow2Sim::AvgLengthSweep(int targetpairs, double from, double to, double step, string filename)
+{
+	//reset file
+	ofstream stats;
+	stats.open(filename, ios::out | ios::trunc);
+	stats.close();
+	//do the simulations
+	for (double curfid = from; curfid <= to; curfid = curfid + step)
+	{
+		//set title
+		int percent = (int)(((curfid - from) * 100) / (to - from));
+		ostringstream stit;
+		stit << "repsim: " << percent << "% ";
+		title = stit.str();
+		//do simulation for given fidelity
+		double avgtime = 0;
+		double avgmemtime = 0;
+		dist = curfid;
+		this->AvgSim(targetpairs, &avgtime, &avgmemtime);
+		// write results
+		stats.open(filename, ios::out | ios::app);
+		stats << curfid << " " << avgtime << " " << avgmemtime << endl;
+		stats.close();
+	}
+	ostringstream scim;
+	scim << "repsim: Done!";
+	string str = scim.str();
+	wstring wstr;
+	wstr.assign(str.begin(), str.end());
+	SetConsoleTitle(wstr.c_str());
+	return 0;
+}
+
 int meminfo(QMem * mem, int memsize)
 {
 	for (int i = 0; i < memsize; i++)
@@ -448,3 +549,364 @@ int meminfo(QMem * mem, int memsize)
 	return 0;
 }
 
+int Pow2Sim::MultiAvgFidSweep(int targetpairs, double from, double to, double step, string filename, int simthreads)
+{
+	//reset file
+	ofstream stats;
+	stats.open(filename, ios::out | ios::trunc);
+	stats.close();
+	//set up threads
+//	function<int(int, double*,double*,double,int*)> toSim=Pow2Sim::AvgSimMFid ;
+
+	TaskThread<int(int, double*,double*,double, int*), int>  *sthreads;
+	sthreads = new TaskThread<int(int, double*, double*, double, int*), int>[simthreads];
+	//console
+	int *threadprogress = new int[simthreads];
+	for (int i = 0; i < simthreads; i++) threadprogress[i] = 0;
+	int progress = 0;
+	bool console_on = true;
+	thread console_thread(&ManageConsoleTitle, &console_on, &progress, threadprogress, simthreads);
+	//set up
+	for (int i = 0; i < simthreads; i++)
+	{
+		sthreads[i].task = packaged_task<int (int, double*, double*, double, int*)> (std::bind(&Pow2Sim::AvgSimMFid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+		sthreads[i].future = sthreads[i].task.get_future();
+	}
+	//do the simulations
+	int iter = 0;
+	double *avgtime = new double[targetpairs];
+	double *avgmemtime = new double[targetpairs];
+
+	double curfid = from;
+	//start threads
+	for (int i = 0; i < simthreads && curfid <= to; i++)
+	{
+		cout << "aa";
+		sthreads[i].thread = thread(move(sthreads[i].task), targetpairs, &avgtime[iter], &avgmemtime[iter], curfid, &threadprogress[i]);
+		iter++;
+		curfid = curfid + step;
+		cout << i;
+		cout << "bb";
+	}
+	cout << "cc";
+	//check for done threads
+	while (curfid <= to)
+	{
+		for (int i = 0; i < simthreads; i++)
+		{
+			cout << "it  " << iter << endl;
+			if (sthreads[i].future.wait_for(chrono::milliseconds(50)) == future_status::ready && curfid <= to)
+			{
+				sthreads[i].thread.join();
+				sthreads[i].task = packaged_task<int(int, double*, double*, double, int*)>(std::bind(&Pow2Sim::AvgSimMFid, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+				sthreads[i].future = sthreads[i].task.get_future();
+				sthreads[i].thread = thread(move(sthreads[i].task), targetpairs, &avgtime[iter], &avgmemtime[iter], curfid, &threadprogress[i]);
+				iter++;
+				cout << "fut" << endl;
+				curfid = curfid + step;
+				{
+					lock_guard<mutex> lock(consoletitle);
+					progress = (int)(((curfid - from) * 100) / (to - from));
+				}
+			}
+		}
+	}
+
+	//cleanup
+	cout << endl << "cleanup" << endl;
+	for (int i = 0; i < simthreads; i++)
+	{
+		if (sthreads[i].thread.joinable()) sthreads[i].thread.join();
+		cout << endl << i << endl;
+	}
+	console_on = false;
+	cout << "consolej";
+	console_thread.join();
+	cout << endl << "consolej done" << endl;
+
+	// write results
+	stats.open(filename, ios::out | ios::app);
+	int kiindex = 0;
+	for (double wfid = from; wfid <= to; wfid = wfid + step)
+	{
+		stats << wfid << " " << avgtime[kiindex] << " " << avgmemtime[kiindex] << endl;
+		kiindex++;
+	}
+	stats.close();
+
+	ostringstream scim;
+	scim << "repsim: Done!";
+	string str = scim.str();
+	wstring wstr;
+	wstr.assign(str.begin(), str.end());
+	SetConsoleTitle(wstr.c_str());
+	//clean up memory
+	delete[] sthreads;
+	delete[] avgtime;
+	delete[] avgmemtime;
+
+	return 0;
+}
+
+int Pow2Sim::AvgSimMFid(int targetpairs, double * avgtime, double * avgmemtime, double actfid, int * progress)
+{
+	Node * nodes = new Node[eprnumber + 1];
+	Node * eprnodes = new Node[eprnumber];
+	Channel * channels = new Channel[2 * eprnumber];
+	SimRoot * Sim = new SimRoot;
+	Sim->diagnostics = 0;
+	*avgmemtime = 0;
+	EPR cur_epr;
+	cur_epr.state = new Vector4cd;
+	cur_epr.fidelity = actfid;
+	cur_epr.rate = std_epr->rate;
+
+
+	//Setup tree
+	Pow2Setup(nodes, eprnodes, channels, eprnumber, &cur_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
+
+	int donepairs = 0;
+	// start simulation
+	for (int i = 0; i < eprnumber; i++) eprnodes[i].GenEPR(Sim); // firts stimuli
+	while (donepairs < targetpairs && Sim->curtime < timelimit*targetpairs)
+	{
+		Sim->ExecuteNext();
+		//Sim->printlisttimes();
+		//cout << endl;
+		//nodes[0].printmemstates();
+		//nodes[1].printmemstates();
+		for (int i = 0; i < nodes[eprnumber].memsize; i++)
+		{
+			//cout << nodes[eprnumber].memleft[i].state <<"  "<< nodes[eprnumber].memleft[i].ReadytoMeasure << endl;
+			if (nodes[eprnumber].memleft[i].state == 3 && nodes[eprnumber].memleft[i].ReadytoMeasure == 1 && nodes[eprnumber].memleft[i].fid >= nodes[eprnumber].targetfid) // pair is nice and well at endpoints
+			{
+				donepairs = donepairs + 1;
+				//write stats
+				*avgmemtime = *avgmemtime + (Sim->curtime - nodes[eprnumber].memleft[i].rcvtime);
+				//free up the pairs
+				nodes[eprnumber].memleft[i].pair->mem[!nodes[eprnumber].memleft[i].pairindex]->reset();
+				delete nodes[eprnumber].memleft[i].pair;
+				nodes[eprnumber].memleft[i].reset();
+				//cout << endl << "donepairs: " << donepairs << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+				//	<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
+
+				//change title
+				{
+					lock_guard<mutex> lock(consoletitle);
+					*progress = (int)(donepairs * 100) / targetpairs;
+				}
+			}
+		}
+	}
+	if (donepairs != 0)
+	{
+		*avgtime = Sim->curtime / (double)donepairs;
+		*avgmemtime = *avgmemtime / (double)donepairs;
+	}
+	else
+	{
+		*avgtime = 0;
+		*avgmemtime = 0;
+	}
+
+	//clean up after
+	delete Sim;
+	delete[] nodes;
+	delete[] eprnodes;
+	delete[] channels;
+
+	return 0;
+
+	return 0;
+}
+
+void ManageConsoleTitle(bool * work, int * allprcnt, int * threadprcnt, int threads)
+{
+	while (*work)
+	{
+		{
+			lock_guard<mutex> lock(consoletitle);
+			std::ostringstream scim;
+			scim << "test: " << *allprcnt << "% ";
+			//scim << " " << threads;
+			for (int i = 0; i < threads; i++)
+				scim << "t" << i << ": " << threadprcnt[i] << "% ";
+			std::string str = scim.str();
+			std::wstring wstr;
+			wstr.assign(str.begin(), str.end());
+			SetConsoleTitle(wstr.c_str());
+		}
+		std::this_thread::sleep_for(chrono::milliseconds(500));
+	}
+}
+
+int Pow2Sim::AvgSimMEPR(int targetpairs, double * avgtime, double * avgmemtime, double rate, int * progress)
+{
+	Node * nodes = new Node[eprnumber + 1];
+	Node * eprnodes = new Node[eprnumber];
+	Channel * channels = new Channel[2 * eprnumber];
+	SimRoot * Sim = new SimRoot;
+	Sim->diagnostics = 0;
+	*avgmemtime = 0;
+	EPR cur_epr;
+	cur_epr.state = new Vector4cd;
+	cur_epr.fidelity = std_epr->fidelity;
+	cur_epr.rate = rate;
+
+
+	//Setup tree
+	Pow2Setup(nodes, eprnodes, channels, eprnumber, &cur_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
+
+	int donepairs = 0;
+	// start simulation
+	for (int i = 0; i < eprnumber; i++) eprnodes[i].GenEPR(Sim); // firts stimuli
+	while (donepairs < targetpairs && Sim->curtime < timelimit*targetpairs)
+	{
+		Sim->ExecuteNext();
+		//Sim->printlisttimes();
+		//cout << endl;
+		//nodes[0].printmemstates();
+		//nodes[1].printmemstates();
+		for (int i = 0; i < nodes[eprnumber].memsize; i++)
+		{
+			//cout << nodes[eprnumber].memleft[i].state <<"  "<< nodes[eprnumber].memleft[i].ReadytoMeasure << endl;
+			if (nodes[eprnumber].memleft[i].state == 3 && nodes[eprnumber].memleft[i].ReadytoMeasure == 1 && nodes[eprnumber].memleft[i].fid >= nodes[eprnumber].targetfid) // pair is nice and well at endpoints
+			{
+				donepairs = donepairs + 1;
+				//write stats
+				*avgmemtime = *avgmemtime + (Sim->curtime - nodes[eprnumber].memleft[i].rcvtime);
+				//free up the pairs
+				nodes[eprnumber].memleft[i].pair->mem[!nodes[eprnumber].memleft[i].pairindex]->reset();
+				delete nodes[eprnumber].memleft[i].pair;
+				nodes[eprnumber].memleft[i].reset();
+				//cout << endl << "donepairs: " << donepairs << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+				//	<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
+
+				//change title
+				{
+					lock_guard<mutex> lock(consoletitle);
+					*progress = (int)(donepairs * 100) / targetpairs;
+				}
+			}
+		}
+	}
+	if (donepairs != 0)
+	{
+		*avgtime = Sim->curtime / (double)donepairs;
+		*avgmemtime = *avgmemtime / (double)donepairs;
+	}
+	else
+	{
+		*avgtime = 0;
+		*avgmemtime = 0;
+	}
+
+	//clean up after
+	delete Sim;
+	delete[] nodes;
+	delete[] eprnodes;
+	delete[] channels;
+
+	return 0;
+
+	return 0;
+}
+
+int Pow2Sim::MultiAvgEPRSweep(int targetpairs, double from, double to, double step, string filename, int simthreads)
+{
+	//reset file
+	ofstream stats;
+	stats.open(filename, ios::out | ios::trunc);
+	stats.close();
+	//set up threads
+	//	function<int(int, double*,double*,double,int*)> toSim=Pow2Sim::AvgSimMFid ;
+
+	TaskThread<int(int, double*, double*, double, int*), int>  *sthreads;
+	sthreads = new TaskThread<int(int, double*, double*, double, int*), int>[simthreads];
+	//console
+	int *threadprogress = new int[simthreads];
+	for (int i = 0; i < simthreads; i++) threadprogress[i] = 0;
+	int progress = 0;
+	bool console_on = true;
+	thread console_thread(&ManageConsoleTitle, &console_on, &progress, threadprogress, simthreads);
+	//set up
+	for (int i = 0; i < simthreads; i++)
+	{
+		sthreads[i].task = packaged_task<int(int, double*, double*, double, int*)>(std::bind(&Pow2Sim::AvgSimMEPR, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+		sthreads[i].future = sthreads[i].task.get_future();
+	}
+	//do the simulations
+	int iter = 0;
+	double *avgtime = new double[targetpairs];
+	double *avgmemtime = new double[targetpairs];
+
+	double curfid = from;
+	//start threads
+	for (int i = 0; i < simthreads && curfid <= to; i++)
+	{
+		cout << "aa";
+		sthreads[i].thread = thread(move(sthreads[i].task), targetpairs, &avgtime[iter], &avgmemtime[iter], curfid, &threadprogress[i]);
+		iter++;
+		curfid = curfid * step;
+		cout << i;
+		cout << "bb";
+	}
+	cout << "cc";
+	//check for done threads
+	while (curfid <= to)
+	{
+		for (int i = 0; i < simthreads; i++)
+		{
+			cout << "it  " << iter << endl;
+			if (sthreads[i].future.wait_for(chrono::milliseconds(50)) == future_status::ready && curfid <= to)
+			{
+				sthreads[i].thread.join();
+				sthreads[i].task = packaged_task<int(int, double*, double*, double, int*)>(std::bind(&Pow2Sim::AvgSimMEPR, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+				sthreads[i].future = sthreads[i].task.get_future();
+				sthreads[i].thread = thread(move(sthreads[i].task), targetpairs, &avgtime[iter], &avgmemtime[iter], curfid, &threadprogress[i]);
+				iter++;
+				cout << "fut" << endl;
+				curfid = curfid * step;
+				{
+					lock_guard<mutex> lock(consoletitle);
+					progress = (int)(((curfid - from) * 100) / (to - from));
+				}
+			}
+		}
+	}
+
+	//cleanup
+	cout << endl << "cleanup" << endl;
+	for (int i = 0; i < simthreads; i++)
+	{
+		if (sthreads[i].thread.joinable()) sthreads[i].thread.join();
+		cout << endl << i << endl;
+	}
+	console_on = false;
+	cout << "consolej";
+	console_thread.join();
+	cout << endl << "consolej done" << endl;
+
+	// write results
+	stats.open(filename, ios::out | ios::app);
+	int kiindex = 0;
+	for (double wfid = from; wfid <= to; wfid = wfid * step)
+	{
+		stats << wfid << " " << avgtime[kiindex] << " " << avgmemtime[kiindex] << endl;
+		kiindex++;
+	}
+	stats.close();
+
+	ostringstream scim;
+	scim << "repsim: Done!";
+	string str = scim.str();
+	wstring wstr;
+	wstr.assign(str.begin(), str.end());
+	SetConsoleTitle(wstr.c_str());
+	//clean up memory
+	delete[] sthreads;
+	delete[] avgtime;
+	delete[] avgmemtime;
+
+	return 0;
+}

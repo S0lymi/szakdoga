@@ -14,6 +14,7 @@ extern int nodesinmem;
 extern int eprsinmem;
 extern int channelsinmem;
 extern int withpurifpp;
+extern double timelimit;
 
 class QMem;
 class Node;
