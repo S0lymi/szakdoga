@@ -30,37 +30,19 @@ void Makepow2tree(Node nodes[], int min, int max, Node * parent, int pindex, dou
 
 void InitLintree(Node nodes[], Node eprnodes[], Channel channels[], EPR * epr, int size, double dist, double chalength)
 {
-	for (int i = 0; i < size * 2; i++)//set up channels between nodes
-	{
-		channels[i].from = &eprnodes[i / 2];
-		channels[i].to = &nodes[(i + 1) / 2];
-		channels[i].length = dist / 2;
-		channels[i].alength = chalength;
-	}
 
-	for (int i = 0; i < size; i++) // set up EPR nodes
-	{
-		eprnodes[i].prevNodeleft = &nodes[i];
-		eprnodes[i].prevNoderight = &nodes[i + 1];
-		eprnodes[i].leftch = &channels[i * 2];
-		eprnodes[i].prevdistleft = channels[i * 2].length;
-		eprnodes[i].rightch = &channels[i * 2 + 1];
-		eprnodes[i].prevdistright = channels[i * 2 + 1].length;
-		eprnodes[i].epr = epr;
-		eprnodes[i].type = 1;
-	}
-
-	for (int i = 2; i < size; i++) // sets nodes 2 ... n-1
+	for (int i = 1; i < size; i++) // sets nodes 2 ... n-1
 	{
 		nodes[i].nextNode = &nodes[i + 1];
-		nodes[i].nextdist = dist;
+		nodes[i].nextdist = dist/size;
 		nodes[i].prevNoderight = &eprnodes[i];
 		nodes[i].prevdistright = nodes[i].prevNoderight->leftch->length;
 		nodes[i].prevNodeleft = &nodes[i - 1];
 		nodes[i].prevdistleft = nodes[i].prevNodeleft->nextdist;
 	}
 	nodes[0].type = 2;
-	nodes[size + 1].type = 2;
+	nodes[size].type = 2;
+
 	//first node after endpoint is special, because it does the first measurement in the chain
 	nodes[1].nextNode = &nodes[2];
 	nodes[1].nextdist = dist;
@@ -194,12 +176,58 @@ void Pow2Setup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber,
 		eprnodes[i].physNoderight = &nodes[i+1];
 		eprnodes[i].physdistright = eprnodes[i].rightch->length;
 	}
+
+	//spec
+	//nodes[0].targetfid = 0.98;
+	//nodes[eprnumber].targetfid = 0.98;
 }
 
 void LinSetup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, EPR * std_epr, double dist, int memsize, int epratonce, double chalength, double targetfid, function<int(SimRoot*, QMem**, int, double)> PurifMethod)
 {
+	// set up the channels
+	for (int i = 0; i < eprnumber * 2; i++)
+	{
+		channels[i].from = &eprnodes[i / 2];
+		channels[i].to = &nodes[(i + 1) / 2];
+		channels[i].length = dist / (eprnumber * 2);
+		channels[i].alength = chalength;
+	}
+	//set up eprs
+	for (int i = 0; i < eprnumber; i++)
+	{
+		eprnodes[i].prevNodeleft = &nodes[i];
+		eprnodes[i].prevNoderight = &nodes[i + 1];
+		eprnodes[i].leftch = &channels[i * 2];
+		eprnodes[i].prevdistleft = channels[i * 2].length;
+		eprnodes[i].rightch = &channels[i * 2 + 1];
+		eprnodes[i].prevdistright = channels[i * 2 + 1].length;
+		eprnodes[i].epr = std_epr;
+		eprnodes[i].type = 1;
+		eprnodes[i].epratonce = epratonce;
+	}
 	//set up structure
-	InitLintree(nodes, eprnodes, channels, std_epr, eprnumber, dist, chalength);
+	for (int i = 1; i < eprnumber; i++)
+	{
+		nodes[i].nextNode = &nodes[i + 1];
+		nodes[i].nextdist = dist / eprnumber;
+		nodes[i].prevNoderight = &eprnodes[i];
+		nodes[i].prevdistright = dist / (eprnumber * 2);
+		nodes[i].prevNodeleft = &nodes[i - 1];
+		nodes[i].prevdistleft = dist / eprnumber;
+	}
+	//spec second node
+	nodes[1].prevNodeleft = &eprnodes[0];
+	nodes[1].prevdistleft = dist / (eprnumber * 2);
+	//set nodes
+	nodes[0].type = 2;
+	nodes[eprnumber].type = 2;
+	nodes[eprnumber].nextNode = &nodes[0];
+	nodes[eprnumber].nextdist = dist;
+	nodes[eprnumber].prevNodeleft = &nodes[eprnumber - 1];
+	nodes[eprnumber].prevdistleft = dist / eprnumber;
+
+
+	//InitLintree(nodes, eprnodes, channels, std_epr, eprnumber, dist, chalength);
 	// set additional parameters
 	for (int i = 0; i < eprnumber + 1; i++)
 	{
@@ -207,6 +235,12 @@ void LinSetup(Node nodes[], Node eprnodes[], Channel channels[], int eprnumber, 
 		nodes[i].targetfid = targetfid;
 		nodes[i].purification = PurifMethod;
 	}
+	//set eprs
+	eprnodes[0].epr = std_epr;
+	eprnodes[0].type = 1;
+	eprnodes[0].epratonce = epratonce;
+
+
 	//set up physical positions
 	nodes[0].physNoderight = &eprnodes[0];
 	nodes[0].physdistright = eprnodes[0].leftch->length;
@@ -255,7 +289,8 @@ int Pow2Sim::SimpleSim(int targetpairs, string filename)
 	
 	//Setup tree
 	Pow2Setup(nodes, eprnodes, channels, eprnumber, std_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
-
+	//LinSetup(nodes, eprnodes, channels, eprnumber, std_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
+	//Sim->diagnostics = 1;
 	int donepairs = 0;
 	ofstream stats;
 	stats.open(filename, ios::out | ios::trunc);
@@ -266,13 +301,13 @@ int Pow2Sim::SimpleSim(int targetpairs, string filename)
 	{
 		//Sim->printlisttimes();
 		Sim->ExecuteNext();
-		//for (int asd = 0; asd < eprnumber; asd++)
-		//{
-		//	cout << endl << "left" << endl;
-		//	meminfo(nodes[asd].memleft, nodes[asd].memsize);
-		//	cout << endl << "right" << endl;
-		//	meminfo(nodes[asd].memright, nodes[asd].memsize);
-		//}
+		/*for (int asd = 0; asd < eprnumber+1; asd++)
+		{
+			cout << endl << "left" << asd<< endl;
+			meminfo(nodes[asd].memleft, nodes[asd].memsize);
+			cout << endl << "right" << asd << endl;
+			meminfo(nodes[asd].memright, nodes[asd].memsize);
+		}*/
 		for (int i = 0; i < nodes[eprnumber].memsize; i++)
 		{
 			if (nodes[eprnumber].memleft[i].state == 3 && nodes[eprnumber].memleft[i].ReadytoMeasure == 1 && nodes[eprnumber].memleft[i].fid >= nodes[eprnumber].targetfid) // pair is nice and well at endpoints
@@ -664,7 +699,7 @@ int Pow2Sim::AvgSimMFid(int targetpairs, double * avgtime, double * avgmemtime, 
 
 	//Setup tree
 	Pow2Setup(nodes, eprnodes, channels, eprnumber, &cur_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
-
+	//LinSetup(nodes, eprnodes, channels, eprnumber, &cur_epr, dist, memsize, epratonce, chalength, targetfid, PurifMethod);
 	int donepairs = 0;
 	// start simulation
 	for (int i = 0; i < eprnumber; i++) eprnodes[i].GenEPR(Sim); // firts stimuli
@@ -687,8 +722,8 @@ int Pow2Sim::AvgSimMFid(int targetpairs, double * avgtime, double * avgmemtime, 
 				nodes[eprnumber].memleft[i].pair->mem[!nodes[eprnumber].memleft[i].pairindex]->reset();
 				delete nodes[eprnumber].memleft[i].pair;
 				nodes[eprnumber].memleft[i].reset();
-				//cout << endl << "donepairs: " << donepairs << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
-				//	<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;
+				/*cout << endl << "donepairs: " << donepairs << endl << "pairsinmem: " << pairsinmem << "  memsinmem: " << memsinmem << "  itemsinmem: " << itemsinmem << "  measuresinmem: " << measuresinmem
+					<< "  nodesinmem: " << nodesinmem << "  eprsinmem: " << eprsinmem << "  channelsinmem: " << channelsinmem << endl;*/
 
 				//change title
 				{

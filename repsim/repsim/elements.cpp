@@ -389,6 +389,7 @@ int Node::ChangeMemsize(int newmemsize)
 
 int Node::CorrectAfterMeasure(QPair * pair, int result)
 {
+	//cout << "correct";
 	Matrix2cd p1, z1, i1;
 	i1 << 1, 0, 0, 1;
 	p1 << 0, 1, 1, 0;
@@ -422,6 +423,7 @@ int Node::CorrectAfterMeasure(QPair * pair, int result)
 
 int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 {
+	//cout << endl << "BellMeasure" << endl;
 	if (m1->pair != NULL && m2->pair != NULL)
 	{
 		int res;
@@ -436,6 +438,7 @@ int Node::Bellmeasure(SimRoot * Sim,QMem *m1,QMem* m2)
 		m1->pair->agesync();
 		m2->pair->agesync();
 		res = measure.bmeasure(m1->pair, m2->pair);
+		//cout << "BM done" << endl;
 		//set states for next measure in line
 		if (nextNode->prevNoderight != NULL)
 		{
@@ -1412,6 +1415,130 @@ int GreedyBU_DEJPurif2(SimRoot * Sim, QMem ** toPurif, int memsize, double targe
 
 		delete[] toPurif;
 		return 1;
+}
+
+int GreedyTD_DEJPurif(SimRoot * Sim, QMem ** toPurif, int memsize, double targetfid)
+{
+	// set mem states back to normal
+	for (int i = 0; i < memsize; i++)
+	{
+		if (toPurif[i] != NULL)
+		{
+			toPurif[i]->pair->mem[0]->inpurif = false;
+			toPurif[i]->pair->mem[1]->inpurif = false;
+			//cout << "doned" << endl;
+		}
+	}
+
+	int j = 0;
+	//collect pairs to be purified between the same stations
+	int k = 0;
+	bool purifok = false;
+	Node * n1 = NULL;
+	Node * n2 = NULL;
+	//save findings
+	//Purify while there are pairs to be purified
+	//find the smallest indexes
+	QMem *m1, *m2, *aux;
+	m1 = NULL;
+	m2 = NULL;
+	//find m1
+	for (int i = 0; i < memsize; i++)
+	{
+		if (toPurif[i] != NULL)
+		{
+			if (m1 == NULL)
+			{
+				m1 = toPurif[i];
+				toPurif[i] = NULL;
+			}
+			else if (m1->fid < toPurif[i]->fid) //found higher fid->swap
+			{
+				aux = m1;
+				m1 = toPurif[i];
+				toPurif[i] = aux;
+			}
+		}
+	}
+	//find m2
+	for (int i = 0; i < memsize; i++)
+	{
+		if (toPurif[i] != NULL)
+		{
+			if (m2 == NULL)
+			{
+				m2 = toPurif[i];
+				toPurif[i] = NULL;
+			}
+			else if (m2->fid < toPurif[i]->fid) //found higher fid->swap
+			{
+				aux = m2;
+				m2 = toPurif[i];
+				toPurif[i] = aux;
+			}
+		}
+	}
+	//purify until there's nothing left to purify
+	while (m1 != NULL && m2 != NULL)
+	{
+		int result = 0;
+		//purify
+		result = DEJPurif(m2->pair, m1->pair);
+
+		m1 = NULL;
+		//find m1 again
+		for (int i = 0; i < memsize; i++)
+		{
+			if (toPurif[i] != NULL)
+			{
+				if (m1 == NULL)
+				{
+					m1 = toPurif[i];
+					toPurif[i] = NULL;
+				}
+				else if (m1->fid < toPurif[i]->fid) //found higher fid->swap
+				{
+					aux = m1;
+					m1 = toPurif[i];
+					toPurif[i] = aux;
+				}
+			}
+		}
+		if (result == 1) // Purification succesfull -> put m2 back to toPurif(only if fid < target)
+		{
+			double fidelity = Vec4Calcstdfid(*m2->pair->state);
+			m2->pair->mem[0]->fid = fidelity; //nochecks!
+			m2->pair->mem[1]->fid = fidelity;
+			// 	cout << "m2fid:  "<<m2->fid << endl;
+			if (m2->fid >= targetfid) m2 = NULL; // wont swap m2 back if its fid is high enough
+		}
+		else
+		{
+			m2 = NULL;
+		}
+		//find m2 again
+		for (int i = 0; i < memsize; i++)
+		{
+			if (toPurif[i] != NULL)
+			{
+				if (m2 == NULL)
+				{
+					m2 = toPurif[i];
+					toPurif[i] = NULL;
+				}
+				else if (m2->fid < toPurif[i]->fid) //found higher fid->swap
+				{
+					aux = m2;
+					m2 = toPurif[i];
+					toPurif[i] = aux;
+				}
+			}
+		}
+	}
+
+
+	delete[] toPurif;
+	return 1;
 }
 
 void FidSortMems(QMem ** mems, int size)

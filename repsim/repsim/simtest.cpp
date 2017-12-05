@@ -32,14 +32,58 @@ int main()
 	//double avgmemtime = 0;
 	//measure execution time
 	chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
-	Sim.std_epr->fidelity = 0.7;
+	int threads = 8;
+	Sim.dist = 150;
+	Sim.eprnumber = 8;
+	Sim.AvgSimpleSim(100, 50, "results/start/start_8");
+	Sim.eprnumber = 4;
+	Sim.AvgSimpleSim(100, 50, "results/start/start_4");
+
+
+
+	//Sim.PurifMethod = GreedyTD_DEJPurif;
+	//Sim.dist = 150;
+	//Sim.eprnumber = 4;
+	//Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/TD_4.m",threads);
+	//Sim.eprnumber = 8;
+	//Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/TD_8.m", threads);
+	//Sim.eprnumber = 16;
+	//Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/TD_16.m", threads);
+
+
+	/*Sim.dist = 150;
+	Sim.PurifMethod = GreedyBU_DEJPurif2;
+	Sim.eprnumber = 4;
+	Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/lower_4.m", threads);
+	Sim.eprnumber = 8;
+	Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/lower_8.m", threads);
+	Sim.eprnumber = 16;
+	Sim.MultiAvgFidSweep(200, 0.6, 1, 0.01, "results/purifprot/lower_16.m", threads);*/
+	//Sim.dist = 400;
+	//ofstream stats;
+	//stats.open("results/sorrend/Lin_250.m", ios::out | ios::trunc);
+	//stats.close();
+	////Sim.SimpleSim(200, "sorrend/test.m");
+	//for (int i = 4; i < 17; i=i*2)
+	//{
+	//	int asd = 0;
+	//	double time, memtime;
+	//	Sim.eprnumber = i;
+	//	Sim.AvgSimMFid(200, &time, &memtime, Sim.std_epr->fidelity, &asd);
+	//	// write results
+	//	stats.open("results/sorrend/Pow2_250.m", ios::out | ios::app);
+	//	stats << i << " " << time << " " << memtime << endl;
+	//	stats.close();
+	//}
+	//Sim.MultiAvgFidSweep(200, 0.6, 1, 0.05, "sorrend/Lin_250.m", threads);
 	//ch
 	//Sim.std_epr->rate = 10.0/ 8.0;
 	//Sim.memsize = 40;
 	//Sim.eprnumber = 1;
 	//Sim.AvgLengthSweep(200, 5, 500, 5, "results/repvsch/chfid07handicapped_5_500.m");
 	//rep2
-	int threads = 8;
+	/*
+
 	Sim.eprnumber = 4;
 	Sim.dist = 150;
 	//2
@@ -218,6 +262,7 @@ int main()
 	Sim.std_epr->rate = 32;
 	Sim.memsize = 5;
 	Sim.MultiAvgFidSweep(500, 0.6, 1, 0.05, "results/Resource/rep8_500.m", threads);
+	//*/
 	/*
 	//fid 0.7
 	Sim.std_epr->fidelity = 0.7;

@@ -131,6 +131,8 @@ int GreedyBU_DEJPurif(SimRoot * Sim, QMem * mem, int memsize, double targetfid);
 
 int GreedyBU_DEJPurif2(SimRoot * Sim, QMem ** toPurif, int memsize, double targetfid);
 
+int GreedyTD_DEJPurif(SimRoot * Sim, QMem ** toPurif, int memsize, double targetfid);
+
 void FidSortMems(QMem ** mems, int size);
 
 double Vec4Calcstdfid(Vector4cd state);
