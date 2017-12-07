@@ -945,17 +945,6 @@ int Node::GenEPR(SimRoot * Sim)
 	return 0;
 }
 
-int Node::Purify(SimRoot * Sim)
-{
-	//call own purification method
-	//purification(this);
-
-	//Schedule Update
-	SimItem* update = new SimItem;
-
-	return 0;
-}
-
 int Node::printmemstates()
 {
 	cout << endl << "leftmems: " << endl;
