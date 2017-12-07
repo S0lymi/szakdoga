@@ -1,13 +1,13 @@
 #include "qrep.h"
 
-int pairsinmem;
-int memsinmem;
-int itemsinmem;
-int measuresinmem;
-int nodesinmem;
-int eprsinmem;
-int channelsinmem;
-int withpurifpp = 0;
+int pairsinmem = 0;
+int memsinmem = 0;
+int itemsinmem = 0;
+int measuresinmem = 0;
+int nodesinmem = 0;
+int eprsinmem = 0;
+int channelsinmem =0;
+int withpurifpp = 1;
 double timelimit = 20000;
 //QPair
 

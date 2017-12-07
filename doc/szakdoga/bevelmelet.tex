@@ -6,21 +6,21 @@
 
 \section{Elméleti alapok}
 
-A dolgozatban használt terminológia, valamint a vizsgált rendszerek megértéséhez szükséges a kvantuminformatikában használt alapvető jelölések, valamint a kvantumos állapotok alapvető tulajdonságainak és a rajtuk végzett mérések, műveletek hatásainak ismerete. Ehhez nyújt egy gyors áttekintést a következő rész. Megjegyzendő, hogy jelen esetben a rendszereket csak diszkrét időben vizsgáljuk, mivel a későbbiekben vizsgált események leírásához ez elégséges, valamint hogy a bevezető megfelelő lineáris algebrai előismeretekre is épít.
+A dolgozatban használt terminológia, valamint a vizsgált rendszerek megértéséhez szükséges a kvantuminformatikában használt alapvető jelölések és a kvantumos állapotok alapvető tulajdonságainak és a rajtuk végzett mérések, műveletek hatásainak ismerete. Ehhez nyújt egy gyors áttekintést a következő rész. Megjegyzendő, hogy jelen esetben a rendszereket csak diszkrét időben vizsgáljuk, mivel a későbbiekben vizsgált események leírásához ez elégséges, valamint hogy a bevezető megfelelő lineáris algebrai előismeretekre is épít.
 
 \subsection{Posztulátumok:} 
 A posztulátumokat a \cite{kvantkonyv1} irodalom alapján mutatom be.\\
 
-\underline{1. posztulátum - állapotteres leírás:} Egy zárt fizikai rendszer éppen aktuális állapota leírható egy \textbf{V} Hilbert-térbeli egységhosszú, komplex együtthatós állapotvektorral. Hilbert-tér például egy komplex lineáris vektortér, amire értelmezve van a belső szorzat(skalárszorzat). 
-Vegyünk példának egy két dimenziós Hilbert-teret, ami egy egyszerű zárt fizikai rendszert jelképez. A rendszer állapotát le lehet írni egy \textbf{v} két dimenziós vektorral, ahol:\\
+\underline{1. posztulátum - állapotteres leírás:} Egy zárt fizikai rendszer éppen aktuális állapota leírható egy \textbf{V} Hilbert-térbeli egységhosszú, komplex együtthatós állapotvektorral. Hilbert-tér például egy komplex lineáris vektortér, amire értelmezve van a belső szorzat (skalárszorzat). 
+Vegyünk példának egy két dimenziós Hilbert-teret, ami egy egyszerű zárt fizikai rendszert jelképez. A rendszer állapotát le lehet írni egy \textbf{v} kétdimenziós vektorral, ahol:\\
 \begin{center}
 $ v= \begin{bmatrix} a\\b \end{bmatrix} = a\textbf{0}+ b\textbf{1} $ ,ahol 
 $\textbf{0}=\begin{bmatrix} 1\\0 \end{bmatrix} , \textbf{1}=\begin{bmatrix} 0\\1 \end{bmatrix} ,   a,b \in C$
 \end{center}
-Itt \textbf{0} és \textbf{1} az orthonormális(ortgonális és egységhosszú) bázisvektorok. Mivel az állapotvektor egységhosszú, ezért ki kell még kötni, hogy 
+Itt \textbf{0} és \textbf{1} az orthonormális (ortogonális és egységhosszú) bázisvektorok. Mivel az állapotvektor egységhosszú, ezért ki kell még kötni, hogy 
 $\abs{a}^2+\abs{b}^2 =1$ . Az együtthatókra szokás még valószínűségi amplitúdóként is hivatkozni (a Schrödinger hullámfüggvényben amplitúdóként jelennek meg).
 
-\underline{2. posztulátum - rendszer időbeli fejlődése} Zárt fizikai rendszer időbeli fejlődése leírható csak a változás kezdő- és végpontjától függő unitér transzformációval. Az előbbi jelölésrendszer segítségével leírva: 
+\underline{2. posztulátum - rendszer időbeli fejlődése:} Zárt fizikai rendszer időbeli fejlődése leírható csak a változás kezdő- és végpontjától függő unitér transzformációval. Az előbbi jelölésrendszer segítségével leírva: 
 \begin{center}
 $v'(t_2) = U(t_1,t_2)v(t_2), v' \in V$
 \end{center}
@@ -34,7 +34,7 @@ A rendszer állapota mérés után:
 \begin{center}
 $ {\textbf{v}}' = \frac{M_m \textbf{v}}{\sqrt{{\textbf{v}}^\dagger M_m^\dagger M_m \textbf{v}}}  $
 \end{center}
-Mivel a kimenetek összesített valószínűsége 1-el egyenlő(a lehetséges kimenetek lefedik a teljes eseményteret):
+Mivel a kimenetek összesített valószínűsége 1-el egyenlő (a lehetséges kimenetek lefedik a teljes eseményteret):
 \begin{center}
 $ \sum_m P(m|\textbf{v}) = \sum_m {\textbf{v}}^\dagger M_m^\dagger M_m \textbf{v} \equiv 1$
 \end{center}
@@ -55,7 +55,7 @@ A klasszikus számítástechnikához hasonlóan \textit{n} qubit felhasználás�
 \begin{center}
 $ \ket{\psi} \equiv \ket{\psi_1}\ket{\psi_2} \equiv \ket{\psi_1,\psi_2} \equiv \ket{\psi_1\psi_2} $
 \end{center}
-Ami például hogyha:
+Ami például ha:
 \begin{center}
 $ \ket{\psi_1} = \frac{\ket{0}+\ket{1}}{\sqrt{2}}, \ket{\psi_2}=\frac{\ket{0}+\ket{1}}{\sqrt{2}}, $
 \end{center}
@@ -63,7 +63,7 @@ akkor:
 \begin{center}
 $ \ket{\psi}= \frac{\ket{0} \otimes \ket{0} +\ket{0}\otimes\ket{1}+\ket{1}\otimes\ket{0}+\ket{1}\otimes\ket{1}  }{2} = \frac{\ket{00}+\ket{01}+\ket{10}+\ket{11}}{2} $
 \end{center}
-Látszik, hogy az előbbi rendszer a 00,01,10,11 állapotok (amelyek mellesleg ortogonálisak egymásra,itt az állapottér bázisának tekinthetőek) súlyozott (most itt mindegyik 1/2 -el de ez lehet bármilyen más komplex szám is, sőt akár 0 is.) összege, ezeket mind tartalmazza és jól látszik, hogy felbontható $\ket{\psi_1}$  és  $\ket{\psi_2}$  tenzorszorzatára. Az ilyen állapotokat hívjuk szorzat állapotoknak.\\
+Látszik, hogy az előbbi rendszer a 00,01,10,11 állapotok (amelyek mellesleg ortogonálisak egymásra, itt az állapottér bázisának tekinthetőek) súlyozott (most itt mindegyik 1/2 -el de ez lehet bármilyen más komplex szám is, sőt akár 0 is.) összege, ezeket mind tartalmazza és jól látszik, hogy felbontható $\ket{\psi_1}$  és  $\ket{\psi_2}$  tenzorszorzatára. Az ilyen állapotokat hívjuk szorzat állapotoknak.\\
 Most vizsgáljuk a következő állapotot:
 \begin{center}
 $ \ket{\psi} = a\ket{00}+b\ket{11} $
@@ -78,17 +78,17 @@ $ \ket{\Psi^+}= \frac{1}{\sqrt{2}}(\ket{0_A1_B}+\ket{1_A0_B}) $ \\
 
 \end{center}
 
-Figyeljük meg, hogy ezek az állapotok egymásra merőlegesek, az állapotérnek bázisaiként szolgálhatnak. Ennek segítségével definiálhatjuk az ún. Bell-mérést ami egy 2 qubites rendszer projektív mérése ezekben a bázisokban. Megjegyzendő még, hogy a mérés után a mérési posztulátumnak megfelelően a két qubit a négy Bell-állapot egyikébe kerül.\\
+Figyeljük meg, hogy ezek az állapotok egymásra merőlegesek, az állapottér bázisaiként szolgálhatnak. Ennek segítségével definiálhatjuk az ún. Bell-mérést, ami egy 2 qubites rendszer projektív mérése ezekben a bázisokban. Megjegyzendő még, hogy a mérés után a mérési posztulátumnak megfelelően a két qubit a négy Bell-állapot egyikébe kerül.\\
 Megjegyzés: A kapcsolódó irodalmak olvasásához szükséges lehet még a sűrűségmátrixos leírás ismerete (lsd. \hyperref[suru]{F. 1.}), viszont a dolgozat olvasáshoz nem, ezért ennek ismertetésétől eltekintettem.\\
 
 \section{Összefonódás megosztás}
 %(entanglement swapping)
 \subsection{A jelenség bemutatása}
-Az összefonódott állapotok érdekes tulajdonságait természetesen igyekszünk kihasználni a kvantuminformatikában is, nem véletlen tehát, hogy magára az összefonódásra is mint egy fontos erőforrásként tekinthetünk. Elég csak olyan, protokollokra gondolni, mint a szupersűrűségű kódolás, vagy a kvantumteleportáció, melyek mind összefonódott állapotokat “használnak el” a működésük során. Nem csoda tehát, hogy egy adott helyen(vagy helyek között) való összefonódás létrehozásának képessége különös jelentőséggel bír. Ezzel kapcsolatban létezik szerencsére egy számunkra igen hasznos és viszonylag sokszor hasznosított jelenség, az összefonódás megosztás (entanglement swapping), mellyel egy összefonódott párok közötti érdekes interakciót írunk le. A már 1993-ban felvetett koncepció szerint \cite{zukowski1993event} 2 összefonódott pár interakcióját vizsgáljuk egymással a következő módon.A példában tekintsünk kvantum információ hordozóira fotonokként, de természetesen minden fotonhoz hasonló kvantum információ hordozására alkalmas módszerre is az alábbiak szerinti a jelenség. Az összefonódott párjaink közül az egyik kezdetben legyen Alíznál, a másik pedig Bobnál. Legyen a rendszerünk kezdő állapota:
+Az összefonódott állapotok érdekes tulajdonságait természetesen igyekszünk kihasználni a kvantuminformatikában is, nem véletlen tehát, hogy magára az összefonódásra is mint egy fontos erőforrásként tekinthetünk. Elég csak olyan protokollokra gondolni, mint a szupersűrűségű kódolás, vagy a kvantumteleportáció, melyek mind összefonódott állapotokat “használnak el” a működésük során. Nem csoda tehát, hogy egy adott helyen (vagy helyek között) való összefonódás létrehozásának képessége különös jelentőséggel bír. Ezzel kapcsolatban létezik szerencsére egy számunkra igen hasznos és viszonylag sokszor hasznosított jelenség, az összefonódás megosztás (entanglement swapping), mellyel egy összefonódott párok közötti érdekes interakciót írunk le. A már 1993-ban felvetett koncepció szerint \cite{zukowski1993event} 2 összefonódott pár interakcióját vizsgáljuk a következő módon. A példában tekintsünk kvantum információ hordozóira fotonokként, de természetesen minden fotonhoz hasonló kvantum információ hordozására alkalmas módszerre is az alábbiak szerinti a jelenség. Az összefonódott párjaink közül az egyik kezdetben legyen Alíznál, a másik pedig Bobnál. Legyen a rendszerünk kezdő állapota:
 \begin{center}
 $ \ket{\Psi_{kezd}^-}= \ket{\Psi^-}_{AB} \otimes \ket{\Psi^-}_{CD} $
 \end{center}
-ahol $ \Psi^- $ a már fentebb említett Bell állapot, AB fotonpár van Alíznál és CB fotonpár pedig Bobnál.A teljes állapot felírható:
+ahol $ \Psi^- $ a már fentebb említett Bell állapot, AB fotonpár van Alíznál és CD fotonpár pedig Bobnál. A teljes állapot felírható:
 \begin{center}
 $ \ket{\Psi_{kezd}^-} = \frac{1}{2} \Big( \ket{\Psi^+}_{AD}\ket{\Psi^+}_{BC}-\ket{\Psi^-}_{AD}\ket{\Psi^-}_{BC} - \ket{\Phi^+}_{AD}\ket{\Phi^+}_{BC}+\ket{\Phi^-}_{AD}\ket{\Phi^-}_{BC} \Big) $
 \end{center}
@@ -149,22 +149,22 @@ A itt ábrázolt módszer is még idealizált csatornákkal dolgozik, magában n
 %%%
 \subsection{A kvantum ismétlő}
 %%%
-A kvantum ismétlő megvalósítására törekvő modellek túlnyomó része három fő építőelemből áll, és jellemzően e három építőelem más és más megvalósításában tér el egymástól. Egy jellemző általános megvalósítás az alábbi:
-A nagy távolságon jelentkező romlás elkerülése végett, ezt a távolságot felosztjuk több kisebbre, amik között a fentebb részletezett módon összefonódás megosztással teremtünk kapcsolatot. A felosztott kis távolságok között állomásokat alakítunk ki (ismétlőket). Itt végezzük el az összefonódás megosztáshoz szükséges Bell-méréseket. Ezen felül minden szakaszhoz (minden összefonódás megosztási lépcsőhöz) létre kell hoznunk plusz összefonódott párokat amiket a folyamat során elhasználunk.\\
+A kvantum ismétlő megvalósítására törekvő modellek túlnyomó része három fő építőelemből áll, jellemzően e három építőelem más és más megvalósításában tér el egymástól. Egy jellemző általános megvalósítás az alábbi:
+A nagy távolságon jelentkező romlás elkerülése végett ezt a távolságot felosztjuk több kisebbre, amik között a fentebb részletezett módon összefonódás megosztással teremtünk kapcsolatot. A felosztott kis távolságok között állomásokat alakítunk ki (ismétlőket). Itt végezzük el az összefonódás megosztáshoz szükséges Bell-méréseket. Ezen felül minden szakaszhoz (minden összefonódás megosztási lépcsőhöz) létre kell hoznunk plusz összefonódott párokat amiket a folyamat során elhasználunk.\\
  Ehhez szükségünk van egy összefonódott pár forrásra, ami manapság már igen sokféle lehet. %források jöhetnek még ide
 Ez az egyik fő hasonlóság és egyben különbség is a legtöbb megvalósításban. A források maguk is sokféle karakterisztikával rendelkezhetnek. Adhat ki egy forrás kis sebességgel, nagy hibaszázalékkal közel teljesen tiszta állapotokat, vagy akár nagyobb sebességgel kisebb hibaszázalékkal több kevésbé tiszta állapotot is egyszerre.\\
  A csatorna nem ideális átvitelével is foglalkozni kell, látható, hogy az továbbra is exponenciálisan fog romlani a csomópontok közötti hossz növelésével. Ennek kiküszöbölésére használhatunk valamilyen összefonódás tisztító eljárást.\\
  Ezek jellemzően több nem teljesen tiszta összefonódott állapotból állítanak elő kevesebb, tisztább, jobban összefonódott állapotokat. Tipikusan van egy tisztasági határérték a felhasznált “koszos” összefonódott állapotokra ami fölött alkalmazhatóak, emiatt akár ezek paraméterei is támaszthatnak határokat a csatornaszakaszok hossza felé. Segítségükkel az átviteli sebesség kárára ugyan, de az átviteli folyamatok közé megfelelően beiktatva, kompenzálhatóak a csatornából származó veszteségek. Ennek szemléltetésére vizsgáljunk egy egyszerűbb ilyen eljárást.\\
 \underline{Példa egy tisztító protokollra:}\\
-Egy lehetséges ilyen tisztító protokoll például a Bennett által javasolt protokoll\cite{bennett1996purification} amelyben helyben végzett transzformációk segítségével több nem teljesen “tiszta” összefonódott párból kevesebb jobban összefonódott állapot hozható létre. (Megemlítendő, hogy eredetileg elektronspinekre írták le, de természetesen megvalósítható más hordozók esetén is.) Legyen $M$ egy “kevert”(nem tiszta) állapot amiből tisztább, jobban összefonódott állapotokat szeretnénk létrehozni. (Ilyen lehet például egy zajos csatornán megosztott $ \ket{\Psi^-} $  pár.) Ilyenkor $M$ tisztaságát az eredeti teljesen összefonódott állapothoz képest 
+Egy lehetséges ilyen tisztító protokoll például a Bennett által javasolt protokoll\cite{bennett1996purification} amelyben helyben végzett transzformációk segítségével több nem teljesen “tiszta” összefonódott párból kevesebb jobban összefonódott állapot hozható létre. (Megemlítendő, hogy eredetileg elektronspinekre írták le, de természetesen megvalósítható más hordozók esetén is.) Legyen $M$ egy “kevert” (nem tiszta) állapot amiből tisztább, jobban összefonódott állapotokat szeretnénk létrehozni. (Ilyen lehet például egy zajos csatornán megosztott $ \ket{\Psi^-} $  pár.) Ilyenkor $M$ tisztaságát az eredeti teljesen összefonódott állapothoz képest 
 $ F= \bra{\Psi^-}M\ket{\Psi^-} $ 
-segítségével fejezhetjük ki. Ezt akár értelmezhetjük azzal is ebben az esetben, hogy egy véletlenszerű bázisban végzett mérésnél mekkora valószínűséggel mérjük a vizsgált és a cél állapotot párhuzamosnak($P_{||}$).
+segítségével fejezhetjük ki. Ezt akár értelmezhetjük azzal is ebben az esetben, hogy egy véletlenszerű bázisban végzett mérésnél mekkora valószínűséggel mérjük a vizsgált és a cél állapotot párhuzamosnak ($P_{||}$).
 A protokoll lépései leegyszerűsítve:\\
 Először végrehajtunk egy véletlenszerű bilaterális forgatást minden megosztott páron külön, aminek hatására következő forgásszimmetrikus állapothoz jutunk:\\
 $ W_F = F \cdot \bra{\Psi^-} + \frac{1-F}{3}\bra{\Psi^+}\ket{\Psi^+} + \frac{1-F}{3}\bra{\Phi^+}\ket{\Phi^+} + \frac{1-F}{3}\bra{\Phi^-}\ket{\Phi^-} $
 \\
 Az így kapott $W_F$  Werner-állapot ugyanolyan F tisztaságú, mint a kiinduló $M$. A továbbiakban a következő műveletekre lesz szükségünk.:\\
--Unilaterális Pauli forgatások.:az összefonódott párban egy részecske  $\pi$ radiánnal való elforgatása az x,y, vagy z tengely körül. Ennek hatására a Bell állapotok egymásba mennek át: \\
+-Unilaterális Pauli forgatások: az összefonódott párban egy részecske  $\pi$ radiánnal való elforgatása az x,y, vagy z tengely körül. Ennek hatására a Bell állapotok egymásba mennek át: \\
 \begin{center}
 $\sigma_x : \Psi^\pm \leftrightarrow \Phi^\pm $\\
 $\sigma_z : \Psi^\pm \leftrightarrow \Psi^\mp és \Phi^\pm \leftrightarrow \Phi^\mp $ \\
@@ -194,12 +194,12 @@ $F_m > 1/2$  . Továbbá a lépésenként így elért $F'>F$ kielégíti a köve
 \begin{center}
 $F' = \frac{F^2 + \frac{1}{9}(1-F)^2}{F^2 + \frac{2}{3}F(1-F) + \frac{5}{9}(1-F)^2} $
 \end{center}
-A módszer ismételt elvégzésével a tiszta állapotot tetszőlegesen megközelítő állapot állítható elő, viszont a hatékonyság (nem tiszta bemenet/tiszta kimenet)  a teljesen tiszta kimenet közelítésével a 0-hoz tart. Ennek a javítására szerencsére vannak módszerek, egy ilyen lehetőség például, ha nem egy forrást párt BXOR-olunk egy célpárral, hanem többet. Ennek az ötletnek egy továbbfejlesztése, amikor tiszta $\Phi^+$  állapotokat használunk a BXOR céljaként a több nem tiszta forráspárhoz. Ezután megmérjük a célt. A fenti tábla alapján minden $\Psi^+$ vagy $\Psi^-$ forráspár váltja a célt $\Phi^+$ és $\Psi^+$ között, a forrásra való hatás nélkül. Ennek alapján a BXOR-t egyfajta paritás tesztként használva meg tudjuk állapítani, hogy a mért halmazban páratlan vagy páros számú $\Psi$ állapot van. Ezután további BXOR-ok elvégzésével a részhalmazokon, kiválasztható az összes $\Psi$ állapot és $\Phi$ állapotra javítható, majd hasonló módszerrel meg lehet találni a $\Phi^-$ állapotokat is és javítani a kívánt $\Phi^+$-ra.\\
+A módszer ismételt elvégzésével a tiszta állapotot tetszőlegesen megközelítő állapot állítható elő, viszont a hatékonyság (nem tiszta bemenet/tiszta kimenet)  a teljesen tiszta kimenet közelítésével a 0-hoz tart. Ennek a javítására szerencsére vannak módszerek, egy ilyen lehetőség például, ha nem egy forráspárt BXOR-olunk egy célpárral, hanem többet. Ennek az ötletnek egy továbbfejlesztése, amikor tiszta $\Phi^+$  állapotokat használunk a BXOR céljaként a több nem tiszta forráspárhoz. Ezután megmérjük a célt. A fenti tábla alapján minden $\Psi^+$ vagy $\Psi^-$ forráspár váltja a célt $\Phi^+$ és $\Psi^+$ között, a forrásra való hatás nélkül. Ennek alapján a BXOR-t egyfajta paritás tesztként használva meg tudjuk állapítani, hogy a mért halmazban páratlan vagy páros számú $\Psi$ állapot van. Ezután további BXOR-ok elvégzésével a részhalmazokon, kiválasztható az összes $\Psi$ állapot és $\Phi$ állapotra javítható, majd hasonló módszerrel meg lehet találni a $\Phi^-$ állapotokat is és javítani a kívánt $\Phi^+$-ra.\\
 Természetesen léteznek más tisztítóprotokollok is más tulajdonságokkal, viszont a továbbiakhoz nem szükséges ezen terület mélyebb ismerete.% lehet tisztítóprot forrásokat ide.
 \\
-Az ismétlő következő eleme maga a Bell-mérés aminek következtében maga az ``összefonódás megosztás'' nevű jelenség a párokon ténylegesen végbe megy. Megemlítendő, hogy amennyiben nem teljesen tiszta állapotokat mérünk ennek hatására a létrejövő új pár tisztasága is romlani fog, valamint magának a mérésnek is lehet egy hibaszázaléka \cite{lutkenhaus1999bell}, amiket a későbbi lépésekben ugyanúgy javítani kell.\\
+Az ismétlő következő eleme maga a Bell-mérés aminek következtében maga az ``összefonódás megosztás'' nevű jelenség a párokon ténylegesen végbe megy. Megemlítendő, hogy amennyiben nem teljesen tiszta állapotokat mérünk, annak hatására a létrejövő új pár tisztasága is romlani fog, valamint magának a mérésnek is lehet egy hibaszázaléka \cite{lutkenhaus1999bell}, amiket a későbbi lépésekben ugyanúgy javítani kell.\\
 Fontos elemek még az állomásokon található kvantumos állapotok tárolására képes memóriaegységek. Mivel a végső cél az ismétlő két végén található memóriában tárolt qubit közötti összefonódás létrehozása, természetes feltétel az állapothű tároláson túl, hogy ezek a memóriák képesek legyenek megtartani a qubit állapotát a protokoll végigfutási ideje alatt. Az alkalmazható hibajavítási stratégiáknak ez is egyfajta gátat szab mint az összes rendszerben tölthető idő felső határa. \\
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth,keepaspectratio]{repeater}
 \caption[Általános ismétlő]{Általános ismétlő rajza\\ A tisztító protokoll a képen nincs feltüntetve, tipikusan a Bell-mérések előtt alkalmazzák, habár ettől eltérő stratégiák is létezhetnek.}
@@ -242,4 +242,4 @@ A tanulmányban továbbá megmutatják, egy lehetséges $N$ többfelhasználós 
 
 \section{Összefoglaló}
 
-Már az említett megvalósításokból is látszik, hogy a kísérleti kvantuminformációs megvalósítások hatékonysága, erőforrásigénye és megbízhatósága egyre inkább közelíti a gyakorlatban való eredményes használhatósághoz szükséges feltételek teljesítését az információszétosztás területén is. Tekintve a terület gyors fejlődését, különösen, hogy a kvantum titkosítás és kulcsszétosztás már a jelenben is gyakorlati jelentőséggel bír, a kvantum ismétlők ipari megvalósítása nagy valószínűséggel már a közeljövőben is egy megoldandó mérnöki feladatot fog jelenteni. A fentebb szemléltetett tervezésnél megfontolandó nehézségek fényében döntöttem egy szimuláció elkészítése mellett, ahol a továbbiakban ezek hatását szemléltetem illetve vizsgálom.
+Már az említett esetekből is látszik, hogy a kísérleti kvantuminformációs megvalósítások hatékonysága, erőforrásigénye és megbízhatósága egyre inkább közelíti a gyakorlatban való eredményes használhatósághoz szükséges feltételek teljesítését az információszétosztás területén is. Tekintve a terület gyors fejlődését, különösen, hogy a kvantum titkosítás és kulcsszétosztás már a jelenben is gyakorlati jelentőséggel bír, a kvantum ismétlők ipari megvalósítása nagy valószínűséggel már a közeljövőben is egy megoldandó mérnöki feladatot fog jelenteni. A fentebb szemléltetett tervezésnél megfontolandó nehézségek fényében döntöttem egy szimuláció elkészítése mellett, ahol a továbbiakban ezek hatását szemléltetem illetve vizsgálom.

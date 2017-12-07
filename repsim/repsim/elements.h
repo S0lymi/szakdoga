@@ -133,8 +133,6 @@ int GreedyBU_DEJPurif2(SimRoot * Sim, QMem ** toPurif, int memsize, double targe
 
 int GreedyTD_DEJPurif(SimRoot * Sim, QMem ** toPurif, int memsize, double targetfid);
 
-void FidSortMems(QMem ** mems, int size);
-
 double Vec4Calcstdfid(Vector4cd state);
 
 bool Checkforpurif(QMem * mem, int memsize, double targetfid);

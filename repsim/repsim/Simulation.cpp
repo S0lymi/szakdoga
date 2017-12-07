@@ -24,15 +24,15 @@ SimRoot::SimRoot()
 
 SimRoot::~SimRoot()
 {
-	cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
-	this->printlisttimes();
+	//cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
+	//this->printlisttimes();
 	//execute pair distribution  items, so there are no pairs left in system;
 	SimItem * todo;
 	todo = nextItem;
 	int auxcount = 0;
 	while (todo != NULL)
 	{
-		cout << endl << "asdasdadasdasdasdasdasdasdasdasd" << endl;
+		//cout << endl << "asdasdadasdasdasdasdasdasdasdasd" << endl;
 		if (todo->name == "rcvch" || todo->name == "thrch" || todo->name == "chrecscr" || todo->name == "chrecscr" || todo->name == "chrecscl")// these items have to be done in order to free the pairs
 		{
 			//spec case if todo is nextItem
@@ -42,12 +42,12 @@ SimRoot::~SimRoot()
 				nextItem->FuncToCall();
 				SimItem *aux;
 				aux = nextItem->nextItem;
-				cout << "aux: " << aux << endl;
+				//cout << "aux: " << aux << endl;
 				delete nextItem;
 				nextItem = aux;
 				if (nextItem != NULL) nextItem->prevItem = NULL;
 				todo = nextItem;
-				cout << "spec nt:" << nextItem << endl;
+				//cout << "spec nt:" << nextItem << endl;
 			}
 			else
 			{
@@ -64,19 +64,19 @@ SimRoot::~SimRoot()
 					todo->prevItem = aux2;
 					if (aux2 != NULL) aux2->nextItem = todo;
 					auxcount++;
-					cout << " in ";
+					//cout << " in ";
 				}
 				else
 				{
 					todo = aux1;
 					if (aux2 != NULL) aux2->nextItem = todo;
-					cout << "iels";
+					//cout << "iels";
 				}
 			}
 		}
 		else
 		{
-			cout << " else ";
+			//cout << " else ";
 			todo = todo->nextItem;
 		}
 	}
@@ -101,8 +101,8 @@ SimRoot::~SimRoot()
 		count++;
 		delete nextnext;
 	}
-	cout << "delcount: " << count << endl << "auxcount: " << auxcount << endl;
-	cout << "cccccccCCCCCCCCccccccccc" << endl;
+	//cout << "delcount: " << count << endl << "auxcount: " << auxcount << endl;
+	//cout << "cccccccCCCCCCCCccccccccc" << endl;
 }
 
 void SimRoot::Schedule(SimItem * item)

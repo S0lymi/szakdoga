@@ -1541,21 +1541,6 @@ int GreedyTD_DEJPurif(SimRoot * Sim, QMem ** toPurif, int memsize, double target
 	return 1;
 }
 
-void FidSortMems(QMem ** mems, int size)
-{
-	QMem** newmem = new QMem*[size];
-	for (int i = 0; i < size; i++) newmem[i] = NULL;
-	if (mems[0] != NULL)
-	{
-		for (int j = 0; j < size; j++)//find the index with the smallest fidelty
-		{
-
-		}
-
-	}
-
-}
-
 double Vec4Calcstdfid(Vector4cd state)
 {
 	Vector4cd target;
